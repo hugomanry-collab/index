@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JapVocab ESP32</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f2f2f7; margin: 0; padding: 20px; color: #1c1c1e; }
+        h1 { font-size: 24px; text-align: center; }
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .kanji { font-size: 22px; font-weight: bold; color: #007aff; }
+        .kana { color: #8e8e93; font-size: 14px; }
+        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #c7c7cc; font-size: 16px; box-sizing: border-box; }
+        button { background: #007aff; color: white; border: none; font-weight: bold; }
+        button.sync { background: #34c759; margin-top: 20px; }
+        .form-container { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>🇯🇵 JapVocab Bus</h1>
+
+    <div class="form-container">
+        <h3>Ajouter un mot</h3>
+        <input type="text" id="kanji" placeholder="Kanji (ex: 猫)">
+        <input type="text" id="kana" placeholder="Kana (ex: ねこ)">
+        <input type="text" id="translation" placeholder="Traduction (ex: Chat)">
+        <button onclick="addWord()">Ajouter</button>
+    </div>
+
+    <h3>Mes mots</h3>
+    <div id="wordList"></div>
+
+    <button class="sync" onclick="syncToESP32()">Synchroniser avec l'ESP32</button>
+
+    <script>
+        let words = JSON.parse(localStorage.getItem('vocab_words')) || [
+            { kanji: "猫", kana: "ねこ", translation: "Chat" }
+        ];
+
+        function saveAndRender() {
+            localStorage.setItem('vocab_words', JSON.stringify(words));
+            renderList();
+        }
+
+        function addWord() {
+            const kanji = document.getElementById('kanji').value;
+            const kana = document.getElementById('kana').value;
+            const translation = document.getElementById('translation').value;
+
+            if(!kanji || !translation) return alert("Remplis au moins le kanji et la traduction !");
+
+            words.push({ kanji, kana, translation });
+            document.getElementById('kanji').value = '';
+            document.getElementById('kana').value = '';
+            document.getElementById('translation').value = '';
+            saveAndRender();
+        }
+
+        function renderList() {
+            const listDiv = document.getElementById('wordList');
+            listDiv.innerHTML = '';
+            words.forEach((w, index) => {
+                listDiv.innerHTML += `
+                    <div class="card">
+                        <div class="kanji">${w.kanji} <span class="kana">[${w.kana}]</span></div>
+                        <div>${w.translation}</div>
+                    </div>
+                `;
+            });
+        }
+
+        async function syncToESP32() {
+            const espIP = prompt("Entre l'adresse IP locale de ton ESP32 :", "192.168.1.50");
+            if (!espIP) return;
+
+            try {
+                const response = await fetch(`http://${espIP}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(words)
+                });
+                if(response.ok) {
+                    alert("Synchronisation réussie avec l'ESP32 !");
+                } else {
+                    alert("Erreur du côté de l'ESP32.");
+                }
+            } catch (error) {
+                alert("Impossible de joindre l'ESP32 (es-tu bien sur le Wi-Fi de la maison ?)");
+            }
+        }
+
+        renderList();
+    </script>
+</body>
+</html>
