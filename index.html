@@ -349,7 +349,7 @@
                 document.getElementById('quizPromptLabel').innerText = "Traduis en français :";
                 document.getElementById('quizPrompt').innerText = w.kanji;
             } else {
-                document.getElementById('quizPromptLabel').innerText = "Traduis en japonais (Kanji/Kana) :";
+                document.getElementById('quizPromptLabel').innerText = "Traduis en japonais (Kanji ou Kana) :";
                 document.getElementById('quizPrompt').innerText = w.translation;
             }
             
@@ -362,10 +362,18 @@
             const userAns = document.getElementById('userAnswerInput').value.trim().toLowerCase();
             const w = words[currentQuizIndex];
             
-            let expected = currentQuizLang === 'FR' ? w.translation.toLowerCase() : w.kanji.toLowerCase();
+            let isCorrect = false;
             const feedback = document.getElementById('quizFeedback');
 
-            if (userAns === expected) {
+            if (currentQuizLang === 'FR') {
+                isCorrect = (userAns === w.translation.toLowerCase());
+            } else {
+                const kanjiMatch = w.kanji && userAns === w.kanji.toLowerCase();
+                const kanaMatch = w.kana && userAns === w.kana.toLowerCase();
+                isCorrect = kanjiMatch || kanaMatch;
+            }
+
+            if (isCorrect) {
                 feedback.style.color = "var(--success)";
                 feedback.innerText = "✔ Correct !";
                 // Réussite : baisse le poids de difficulté
@@ -376,7 +384,11 @@
                 }
             } else {
                 feedback.style.color = "var(--danger)";
-                feedback.innerText = `✖ Faux. Réponse : ${currentQuizLang === 'FR' ? w.translation : w.kanji}`;
+                if (currentQuizLang === 'FR') {
+                    feedback.innerText = `✖ Faux. Réponse : ${w.translation}`;
+                } else {
+                    feedback.innerText = `✖ Faux. Réponse : ${w.kanji}${w.kana ? ' (' + w.kana + ')' : ''}`;
+                }
                 // Échec : augmente le poids de difficulté
                 if (currentQuizLang === 'FR') {
                     w.weight_FR = (w.weight_FR || 3) + 2;
