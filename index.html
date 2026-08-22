@@ -230,9 +230,9 @@
                 <div class="quiz-word" id="quizPrompt">猫</div>
                 
                 <div class="form-group" style="text-align: left; margin-top: 20px;">
-                    <input type="text" id="userAnswerInput" placeholder="Ta réponse...">
+                    <input type="text" id="userAnswerInput" placeholder="Ta réponse..." onkeydown="if(event.key === 'Enter') submitQuizAnswer();">
                 </div>
-                <button class="action-btn" onclick="submitQuizAnswer()">Valider</button>
+                <button class="action-btn" id="quizActionBtn" onclick="submitQuizAnswer()">Valider</button>
                 <div class="quiz-feedback" id="quizFeedback"></div>
             </div>
         </div>
@@ -252,14 +252,14 @@
     </nav>
 
     <script>
-        // Structure enrichie avec les stats (poids de révision similaire à l'ESP32)
         let words = JSON.parse(localStorage.getItem('vocab_words')) || [
             { kanji: "猫", kana: "ねこ", translation: "Chat", weight_FR: 3, weight_JP: 3 },
             { kanji: "水", kana: "みず", translation: "Eau", weight_FR: 3, weight_JP: 3 }
         ];
 
         let currentQuizIndex = 0;
-        let currentQuizLang = 'FR'; // 'FR' (traduit en francais) ou 'JP' (traduit en japonais)
+        let currentQuizLang = 'FR';
+        let isWaitingForNext = false; // Verrou pour éviter les doubles validations ou changements intempestifs
 
         function saveAndRender() {
             localStorage.setItem('vocab_words', JSON.stringify(words));
@@ -291,7 +291,7 @@
                         <div class="card-content">
                             <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span></div>
                             <div class="translation">${w.translation}</div>
-                            <div class="card-stats">Poids révision (Difficulté) - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
+                            <div class="card-stats">Poids révision - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
                         </div>
                         <button class="delete-btn" onclick="deleteWord(${index})">Suppr</button>
                     </div>
@@ -325,11 +325,14 @@
             }
         }
 
-        // --- GESTION DU QUIZ (Pondéré comme l'ESP32) ---
+        // --- GESTION DU QUIZ ---
         function initQuiz() {
             if (words.length === 0) return;
             
-            // Choix aléatoire pondéré (les mots avec un poids fort sortent plus souvent)
+            isWaitingForNext = false;
+            document.getElementById('quizActionBtn').innerText = "Valider";
+            
+            // Choix aléatoire pondéré
             currentQuizLang = Math.random() < 0.5 ? 'FR' : 'JP';
             
             let totalWeight = words.reduce((sum, w) => sum + (currentQuizLang === 'FR' ? (w.weight_FR || 3) : (w.weight_JP || 3)), 0);
@@ -353,12 +356,22 @@
                 document.getElementById('quizPrompt').innerText = w.translation;
             }
             
-            document.getElementById('userAnswerInput').value = '';
+            const inputField = document.getElementById('userAnswerInput');
+            inputField.value = '';
+            inputField.disabled = false;
+            inputField.focus();
             document.getElementById('quizFeedback').innerText = '';
         }
 
         function submitQuizAnswer() {
             if (words.length === 0) return;
+
+            // Si on est déjà en attente, le clic sert à passer directement au mot suivant
+            if (isWaitingForNext) {
+                initQuiz();
+                return;
+            }
+
             const userAns = document.getElementById('userAnswerInput').value.trim().toLowerCase();
             const w = words[currentQuizIndex];
             
@@ -376,7 +389,6 @@
             if (isCorrect) {
                 feedback.style.color = "var(--success)";
                 feedback.innerText = "✔ Correct !";
-                // Réussite : baisse le poids de difficulté
                 if (currentQuizLang === 'FR') {
                     if (w.weight_FR > 1) w.weight_FR--;
                 } else {
@@ -389,7 +401,6 @@
                 } else {
                     feedback.innerText = `✖ Faux. Réponse : ${w.kanji}${w.kana ? ' (' + w.kana + ')' : ''}`;
                 }
-                // Échec : augmente le poids de difficulté
                 if (currentQuizLang === 'FR') {
                     w.weight_FR = (w.weight_FR || 3) + 2;
                 } else {
@@ -398,10 +409,21 @@
             }
 
             saveAndRender();
-            setTimeout(initQuiz, 2000); // Passe au mot suivant après 2 secondes
+
+            // On change le comportement du bouton pour passer au suivant manuellement ou via un délai fluide sans forcer l'écriture
+            isWaitingForNext = true;
+            document.getElementById('userAnswerInput').disabled = true;
+            document.getElementById('quizActionBtn').innerText = "Mot suivant ➔";
+
+            // Optionnel : passage automatique fluide après 2.5 secondes si tu ne touches à rien, ou clic direct
+            window.quizTimeout = setTimeout(() => {
+                if (isWaitingForNext) {
+                    initQuiz();
+                }
+            }, 2500);
         }
 
-        // --- SYNCHRONISATION BIDIRECTIONNELLE AVEC L'ESP32 ---
+        // --- SYNCHRONISATION BIDIRECTIONNELLE ---
         async function syncToESP32() {
             const savedIP = localStorage.getItem('esp_ip') || "192.168.1.200";
             const espIP = prompt("Adresse IP locale de l'ESP32 :", savedIP);
@@ -410,7 +432,6 @@
             localStorage.setItem('esp_ip', espIP);
 
             try {
-                // Envoi des mots et de leurs statistiques vers l'ESP32
                 const response = await fetch(`http://${espIP}/update`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -418,7 +439,6 @@
                 });
                 
                 if(response.ok) {
-                    // Si l'ESP32 renvoie en retour sa liste mise à jour (avec ses propres stats de révision faites sur le bureau), on les fusionne
                     const updatedWordsFromESP = await response.json();
                     if (Array.isArray(updatedWordsFromESP)) {
                         words = updatedWordsFromESP;
