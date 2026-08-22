@@ -255,8 +255,8 @@
     </nav>
 
     <script>
-        // Utilisation de la nouvelle clé 'vocab_words_v2' pour forcer le chargement de la liste JLPT N5 sur mobile
-        let words = JSON.parse(localStorage.getItem('vocab_words_v2')) || [
+        // Utilisation de la clé 'vocab_words_v3' pour forcer le chargement de la liste JLPT N5
+        let words = JSON.parse(localStorage.getItem('vocab_words_v3')) || [
             { kanji: "私", kana: "わたし", translation: "je, moi", weight_FR: 3, weight_JP: 3 },
             { kanji: "猫", kana: "ねこ", translation: "chat", weight_FR: 3, weight_JP: 3 },
             { kanji: "犬", kana: "いぬ", translation: "chien", weight_FR: 3, weight_JP: 3 },
@@ -302,7 +302,7 @@
         let autoNextTimer = null;
 
         function saveAndRender() {
-            localStorage.setItem('vocab_words_v2', JSON.stringify(words));
+            localStorage.setItem('vocab_words_v3', JSON.stringify(words));
             renderList();
         }
 
