@@ -255,44 +255,100 @@
     </nav>
 
     <script>
-        // Utilisation de la clé 'vocab_words_v3' pour forcer le chargement de la liste JLPT N5
-        let words = JSON.parse(localStorage.getItem('vocab_words_v3')) || [
+        // Liste complète de 80 mots essentiels du JLPT N5 (Clé: vocab_words_v4)
+        let words = JSON.parse(localStorage.getItem('vocab_words_v4')) || [
+            // Pronoms & Personnes
             { kanji: "私", kana: "わたし", translation: "je, moi", weight_FR: 3, weight_JP: 3 },
+            { kanji: "あなた", kana: "あなた", translation: "tu, vous", weight_FR: 3, weight_JP: 3 },
+            { kanji: "人", kana: "ひと", translation: "personne, homme", weight_FR: 3, weight_JP: 3 },
+            { kanji: "友達", kana: "ともだち", translation: "ami, copain", weight_FR: 3, weight_JP: 3 },
+            { kanji: "父", kana: "ちち", translation: "père", weight_FR: 3, weight_JP: 3 },
+            { kanji: "母", kana: "はは", translation: "mère", weight_FR: 3, weight_JP: 3 },
+            { kanji: "先生", kana: "せんせい", translation: "professeur, enseignant", weight_FR: 3, weight_JP: 3 },
+            { kanji: "学生", kana: "がくせい", translation: "étudiant, élève", weight_FR: 3, weight_JP: 3 },
+            { kanji: "男", kana: "おとこ", translation: "homme, mâle", weight_FR: 3, weight_JP: 3 },
+            { kanji: "女", kana: "おんな", translation: "femme", weight_FR: 3, weight_JP: 3 },
+
+            // Temps & Jours
+            { kanji: "今日", kana: "きょう", translation: "aujourd'hui", weight_FR: 3, weight_JP: 3 },
+            { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 },
+            { kanji: "昨日", kana: "きのう", translation: "hier", weight_FR: 3, weight_JP: 3 },
+            { kanji: "時間", kana: "じかん", translation: "temps, heure", weight_FR: 3, weight_JP: 3 },
+            { kanji: "今", kana: "いま", translation: "maintenant", weight_FR: 3, weight_JP: 3 },
+            { kanji: "年", kana: "とし", translation: "an, année", weight_FR: 3, weight_JP: 3 },
+            { kanji: "日", kana: "ひ", translation: "jour, soleil", weight_FR: 3, weight_JP: 3 },
+            { kanji: "月", kana: "つき", translation: "lune, mois", weight_FR: 3, weight_JP: 3 },
+            { kanji: "週", kana: "しゅう", translation: "semaine", weight_FR: 3, weight_JP: 3 },
+            { kanji: "朝", kana: "あさ", translation: "matin", weight_FR: 3, weight_JP: 3 },
+            { kanji: "夜", kana: "よる", translation: "nuit, soirée", weight_FR: 3, weight_JP: 3 },
+
+            // Lieux & Objets du quotidien
+            { kanji: "学校", kana: "がっこう", translation: "école", weight_FR: 3, weight_JP: 3 },
+            { kanji: "本", kana: "ほん", translation: "livre", weight_FR: 3, weight_JP: 3 },
+            { kanji: "車", kana: "くるま", translation: "voiture, automobile", weight_FR: 3, weight_JP: 3 },
+            { kanji: "水", kana: "みず", translation: "eau", weight_FR: 3, weight_JP: 3 },
+            { kanji: "家", kana: "いえ", translation: "maison, foyer", weight_FR: 3, weight_JP: 3 },
+            { kanji: "駅", kana: "えき", translation: "gare, station", weight_FR: 3, weight_JP: 3 },
+            { kanji: "道", kana: "みち", translation: "chemin, route", weight_FR: 3, weight_JP: 3 },
+            { kanji: "店", kana: "みせ", translation: "magasin, boutique", weight_FR: 3, weight_JP: 3 },
+            { kanji: "お金", kana: "おかね", translation: "argent", weight_FR: 3, weight_JP: 3 },
+            { kanji: "手紙", kana: "てがみ", translation: "lettre", weight_FR: 3, weight_JP: 3 },
+            { kanji: "電話", kana: "でんわ", translation: "téléphone", weight_FR: 3, weight_JP: 3 },
+
+            // Nourriture & Animaux
             { kanji: "猫", kana: "ねこ", translation: "chat", weight_FR: 3, weight_JP: 3 },
             { kanji: "犬", kana: "いぬ", translation: "chien", weight_FR: 3, weight_JP: 3 },
-            { kanji: "水", kana: "みず", translation: "eau", weight_FR: 3, weight_JP: 3 },
+            { kanji: "魚", kana: "さかな", translation: "poisson", weight_FR: 3, weight_JP: 3 },
+            { kanji: "肉", kana: "にく", translation: "viande", weight_FR: 3, weight_JP: 3 },
+            { kanji: "野菜", kana: "やさい", translation: "légume", weight_FR: 3, weight_JP: 3 },
+            { kanji: "果物", kana: "くだもの", translation: "fruit", weight_FR: 3, weight_JP: 3 },
+            { kanji: "卵", kana: "たまご", translation: "œuf", weight_FR: 3, weight_JP: 3 },
+            { kanji: "お茶", kana: "おちゃ", translation: "thé", weight_FR: 3, weight_JP: 3 },
+            { kanji: "ご飯", kana: "ごはん", translation: "riz, repas", weight_FR: 3, weight_JP: 3 },
+
+            // Verbes essentiels
             { kanji: "食べる", kana: "たべる", translation: "manger", weight_FR: 3, weight_JP: 3 },
             { kanji: "飲む", kana: "のむ", translation: "boire", weight_FR: 3, weight_JP: 3 },
             { kanji: "見る", kana: "みる", translation: "voir, regarder", weight_FR: 3, weight_JP: 3 },
             { kanji: "行く", kana: "いく", translation: "aller", weight_FR: 3, weight_JP: 3 },
             { kanji: "来る", kana: "くる", translation: "venir", weight_FR: 3, weight_JP: 3 },
-            { kanji: "学校", kana: "がっこう", translation: "école", weight_FR: 3, weight_JP: 3 },
-            { kanji: "先生", kana: "せんせい", translation: "professeur, enseignant", weight_FR: 3, weight_JP: 3 },
-            { kanji: "学生", kana: "がくせい", translation: "étudiant, élève", weight_FR: 3, weight_JP: 3 },
-            { kanji: "本", kana: "ほん", translation: "livre", weight_FR: 3, weight_JP: 3 },
-            { kanji: "車", kana: "くるま", translation: "voiture, automobile", weight_FR: 3, weight_JP: 3 },
-            { kanji: "時間", kana: "じかん", translation: "temps, heure", weight_FR: 3, weight_JP: 3 },
-            { kanji: "今日", kana: "きょう", translation: "aujourd'hui", weight_FR: 3, weight_JP: 3 },
-            { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 },
-            { kanji: "昨日", kana: "きのう", translation: "hier", weight_FR: 3, weight_JP: 3 },
             { kanji: "買う", kana: "かう", translation: "acheter", weight_FR: 3, weight_JP: 3 },
             { kanji: "話す", kana: "はなす", translation: "parler, discuter", weight_FR: 3, weight_JP: 3 },
             { kanji: "読む", kana: "よむ", translation: "lire", weight_FR: 3, weight_JP: 3 },
             { kanji: "書く", kana: "かく", translation: "écrire", weight_FR: 3, weight_JP: 3 },
             { kanji: "聞く", kana: "きく", translation: "écouter, entendre, demander", weight_FR: 3, weight_JP: 3 },
-            { kanji: "魚", kana: "さかな", translation: "poisson", weight_FR: 3, weight_JP: 3 },
-            { kanji: "肉", kana: "にく", translation: "viande", weight_FR: 3, weight_JP: 3 },
-            { kanji: "野菜", kana: "やさい", translation: "légume", weight_FR: 3, weight_JP: 3 },
-            { kanji: "果物", kana: "くだもの", translation: "fruit", weight_FR: 3, weight_JP: 3 },
+            { kanji: "寝る", kana: "ねる", translation: "dormir, se coucher", weight_FR: 3, weight_JP: 3 },
+            { kanji: "起きる", kana: "おきる", translation: "se réveiller, se lever", weight_FR: 3, weight_JP: 3 },
+            { kanji: "作る", kana: "つくる", translation: "fabriquer, créer, cuisiner", weight_FR: 3, weight_JP: 3 },
+            { kanji: "分かる", kana: "わかる", translation: "comprendre, savoir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "会う", kana: "あう", translation: "rencontrer, voir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "持つ", kana: "もつ", translation: "porter, posséder, tenir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "待つ", kana: "まつ", translation: "attendre", weight_FR: 3, weight_JP: 3 },
+            { kanji: "入る", kana: "はいる", translation: "entrer, contenir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "出る", kana: "でる", translation: "sortir, quitter", weight_FR: 3, weight_JP: 3 },
+            { kanji: "帰る", kana: "かえる", translation: "rentrer, retourner", weight_FR: 3, weight_JP: 3 },
+
+            // Adjectifs courants
             { kanji: "大きい", kana: "おおきい", translation: "grand", weight_FR: 3, weight_JP: 3 },
             { kanji: "小さい", kana: "ちいさい", translation: "petit", weight_FR: 3, weight_JP: 3 },
             { kanji: "新しい", kana: "あたらしい", translation: "nouveau, neuf", weight_FR: 3, weight_JP: 3 },
             { kanji: "古い", kana: "ふるい", translation: "vieux, ancien", weight_FR: 3, weight_JP: 3 },
             { kanji: "高い", kana: "たかい", translation: "haut, cher, élevé", weight_FR: 3, weight_JP: 3 },
             { kanji: "安い", kana: "やすい", translation: "bon marché, pas cher", weight_FR: 3, weight_JP: 3 },
-            { kanji: "友達", kana: "ともだち", translation: "ami, copain", weight_FR: 3, weight_JP: 3 },
-            { kanji: "父", kana: "ちち", translation: "père", weight_FR: 3, weight_JP: 3 },
-            { kanji: "母", kana: "はは", translation: "mère", weight_FR: 3, weight_JP: 3 }
+            { kanji: "良い", kana: "よい", translation: "bon, bien", weight_FR: 3, weight_JP: 3 },
+            { kanji: "悪い", kana: "わるい", translation: "mauvais", weight_FR: 3, weight_JP: 3 },
+            { kanji: "暑い", kana: "あつい", translation: "chaud", weight_FR: 3, weight_JP: 3 },
+            { kanji: "寒い", kana: "さむい", translation: "froid", weight_FR: 3, weight_JP: 3 },
+            { kanji: "美味しい", kana: "おいしい", translation: "délicieux, bon", weight_FR: 3, weight_JP: 3 },
+            { kanji: "忙しい", kana: "いそがしい", translation: "occupé", weight_FR: 3, weight_JP: 3 },
+            { kanji: "楽しい", kana: "たのしい", translation: "amusant, agréable", weight_FR: 3, weight_JP: 3 },
+            { kanji: "白い", kana: "しろい", translation: "blanc", weight_FR: 3, weight_JP: 3 },
+            { kanji: "黒い", kana: "くろい", translation: "noir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "赤い", kana: "あかい", translation: "rouge", weight_FR: 3, weight_JP: 3 },
+            { kanji: "青い", kana: "あおい", translation: "bleu", weight_FR: 3, weight_JP: 3 },
+            { kanji: "静か", kana: "しずか", translation: "calme, silencieux", weight_FR: 3, weight_JP: 3 },
+            { kanji: "有名", kana: "ゆうめい", translation: "célèbre, connu", weight_FR: 3, weight_JP: 3 },
+            { kanji: "元気", kana: "げんき", translation: "en forme, en bonne santé", weight_FR: 3, weight_JP: 3 }
         ];
 
         let currentQuizIndex = 0;
@@ -302,7 +358,7 @@
         let autoNextTimer = null;
 
         function saveAndRender() {
-            localStorage.setItem('vocab_words_v3', JSON.stringify(words));
+            localStorage.setItem('vocab_words_v4', JSON.stringify(words));
             renderList();
         }
 
