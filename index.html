@@ -255,8 +255,8 @@
     </nav>
 
     <script>
-        // Base de données initiale enrichie avec une large sélection de vocabulaire JLPT N5
-        let words = JSON.parse(localStorage.getItem('vocab_words')) || [
+        // Utilisation de la nouvelle clé 'vocab_words_v2' pour forcer le chargement de la liste JLPT N5 sur mobile
+        let words = JSON.parse(localStorage.getItem('vocab_words_v2')) || [
             { kanji: "私", kana: "わたし", translation: "je, moi", weight_FR: 3, weight_JP: 3 },
             { kanji: "猫", kana: "ねこ", translation: "chat", weight_FR: 3, weight_JP: 3 },
             { kanji: "犬", kana: "いぬ", translation: "chien", weight_FR: 3, weight_JP: 3 },
@@ -275,9 +275,8 @@
             { kanji: "今日", kana: "きょう", translation: "aujourd'hui", weight_FR: 3, weight_JP: 3 },
             { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 },
             { kanji: "昨日", kana: "きのう", translation: "hier", weight_FR: 3, weight_JP: 3 },
-            { kanji: "食べる", kana: "たべる", translation: "manger", weight_FR: 3, weight_JP: 3 },
             { kanji: "買う", kana: "かう", translation: "acheter", weight_FR: 3, weight_JP: 3 },
-            { kanji: "話す", kana: "はなし", translation: "parler, discuter", weight_FR: 3, weight_JP: 3 },
+            { kanji: "話す", kana: "はなす", translation: "parler, discuter", weight_FR: 3, weight_JP: 3 },
             { kanji: "読む", kana: "よむ", translation: "lire", weight_FR: 3, weight_JP: 3 },
             { kanji: "書く", kana: "かく", translation: "écrire", weight_FR: 3, weight_JP: 3 },
             { kanji: "聞く", kana: "きく", translation: "écouter, entendre, demander", weight_FR: 3, weight_JP: 3 },
@@ -303,7 +302,7 @@
         let autoNextTimer = null;
 
         function saveAndRender() {
-            localStorage.setItem('vocab_words', JSON.stringify(words));
+            localStorage.setItem('vocab_words_v2', JSON.stringify(words));
             renderList();
         }
 
