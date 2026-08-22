@@ -129,6 +129,12 @@
             color: white;
             cursor: pointer;
             margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        
+        button.action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         button.sync-btn {
@@ -258,6 +264,7 @@
         ];
 
         let currentQuizIndex = 0;
+        let lastQuizIndex = -1; // Mémorise le dernier index pour éviter les répétitions
         let currentQuizLang = 'FR';
         let quizState = 'answering'; // 'answering' ou 'waiting_next'
         let autoNextTimer = null;
@@ -334,22 +341,33 @@
             if (autoNextTimer) clearTimeout(autoNextTimer);
             
             quizState = 'answering';
-            document.getElementById('quizActionBtn').innerText = "Valider";
+            const btn = document.getElementById('quizActionBtn');
+            btn.innerText = "Valider";
+            btn.disabled = false; // Réactive le bouton pour la nouvelle question
             
-            // Choix aléatoire pondéré
-            currentQuizLang = Math.random() < 0.5 ? 'FR' : 'JP';
+            // Choix aléatoire pondéré avec anti-répétition consécutive
+            let nextIndex = -1;
+            let attempts = 0;
             
-            let totalWeight = words.reduce((sum, w) => sum + (currentQuizLang === 'FR' ? (w.weight_FR || 3) : (w.weight_JP || 3)), 0);
-            let rand = Math.floor(Math.random() * totalWeight);
-            let cumulative = 0;
-            
-            for (let i = 0; i < words.length; i++) {
-                cumulative += (currentQuizLang === 'FR' ? (words[i].weight_FR || 3) : (words[i].weight_JP || 3));
-                if (rand < cumulative) {
-                    currentQuizIndex = i;
-                    break;
+            while ((nextIndex === -1 || nextIndex === lastQuizIndex) && words.length > 1 && attempts < 20) {
+                currentQuizLang = Math.random() < 0.5 ? 'FR' : 'JP';
+                
+                let totalWeight = words.reduce((sum, w) => sum + (currentQuizLang === 'FR' ? (w.weight_FR || 3) : (w.weight_JP || 3)), 0);
+                let rand = Math.floor(Math.random() * totalWeight);
+                let cumulative = 0;
+                
+                for (let i = 0; i < words.length; i++) {
+                    cumulative += (currentQuizLang === 'FR' ? (words[i].weight_FR || 3) : (words[i].weight_JP || 3));
+                    if (rand < cumulative) {
+                        nextIndex = i;
+                        break;
+                    }
                 }
+                attempts++;
             }
+            
+            currentQuizIndex = nextIndex === -1 ? 0 : nextIndex;
+            lastQuizIndex = currentQuizIndex; // Mémorise l'index actuel
 
             const w = words[currentQuizIndex];
             if (currentQuizLang === 'FR') {
@@ -420,12 +438,23 @@
 
             saveAndRender();
 
-            // Passage à l'état "en attente du mot suivant"
+            // Passage à l'état "en attente du mot suivant" + Verrouillage visuel du bouton
             quizState = 'waiting_next';
             inputField.disabled = true;
-            document.getElementById('quizActionBtn').innerText = "Mot suivant ➔";
+            
+            const btn = document.getElementById('quizActionBtn');
+            btn.disabled = true; // Désactive et grise le bouton pendant l'attente
+            btn.innerText = "Mot suivant ➔";
+            
+            // Réactive brièvement le bouton après un court délai pour permettre un clic manuel anticipé si souhaité, 
+    // ou laisse le setTimeout gérer le passage automatique au bout de 3 secondes.
+    setTimeout(() => {
+        if (quizState === 'waiting_next') {
+            btn.disabled = false; 
+        }
+    }, 500);
 
-            // L'utilisateur a 3 secondes pour lire avant que ça passe au suivant tout seul, s'il ne clique pas
+            // L'utilisateur a 3 secondes pour lire avant que ça passe au suivant tout seul
             autoNextTimer = setTimeout(() => {
                 if (quizState === 'waiting_next') {
                     initQuiz();
