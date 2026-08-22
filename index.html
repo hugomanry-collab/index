@@ -3,76 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JapVocab ESP32</title>
+    <title>JapVocab Companion</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f2f2f7; margin: 0; padding: 20px; color: #1c1c1e; }
-        h1 { font-size: 24px; text-align: center; }
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .kanji { font-size: 22px; font-weight: bold; color: #007aff; }
-        .kana { color: #8e8e93; font-size: 14px; }
-        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #c7c7cc; font-size: 16px; box-sizing: border-box; }
-        button { background: #007aff; color: white; border: none; font-weight: bold; }
-        button.sync { background: #34c759; margin-top: 20px; }
-        .form-container { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        :root {
+            --primary: #007aff;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --bg: #f2f2f7;
+            --card-bg: #ffffff;
+            --text: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --border: #c7c7cc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+            padding-bottom: 90px; /* Espace pour la barre de navigation fixe */
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Cartes de vocabulaire */
+        .card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-content .kanji {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card-content .kana {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-left: 6px;
+        }
+
+        .card-content .translation {
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .delete-btn {
+            background: #ffe5e5;
+            color: var(--danger);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Formulaires et Boutons */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 16px;
+            box-sizing: border-box;
+            background: var(--card-bg);
+            color: var(--text);
+        }
+
+        button.action-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button.sync-btn {
+            background: var(--success);
+            margin-top: 25px;
+        }
+
+        /* Barre de navigation inférieure (Style App Nativa) */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        nav button.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        nav button span.icon {
+            font-size: 20px;
+        }
+
+        /* Style Quiz / Flashcard simple */
+        .quiz-box {
+            background: var(--card-bg);
+            padding: 30px 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+        }
+        .quiz-word {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🇯🇵 JapVocab Bus</h1>
+    <header id="headerTitle">📚 Mon Vocabulaire</header>
 
-    <div class="form-container">
-        <h3>Ajouter un mot</h3>
-        <input type="text" id="kanji" placeholder="Kanji (ex: 猫)">
-        <input type="text" id="kana" placeholder="Kana (ex: ねこ)">
-        <input type="text" id="translation" placeholder="Traduction (ex: Chat)">
-        <button onclick="addWord()">Ajouter</button>
+    <div class="container">
+        
+        <!-- VUE 1 : LISTE / REVISION -->
+        <div id="view-list" class="view active">
+            <h2>Mes mots enregistrés</h2>
+            <div id="wordList"></div>
+            <button class="action-btn sync-btn" onclick="syncToESP32()">🔄 Synchroniser avec l'ESP32</button>
+        </div>
+
+        <!-- VUE 2 : AJOUTER -->
+        <div id="view-add" class="view">
+            <h2>Ajouter un mot</h2>
+            <div class="form-group">
+                <label>Kanji / Japonais</label>
+                <input type="text" id="kanji" placeholder="ex: 猫">
+            </div>
+            <div class="form-group">
+                <label>Kana (Lecture)</label>
+                <input type="text" id="kana" placeholder="ex: ねこ">
+            </div>
+            <div class="form-group">
+                <label>Traduction française</label>
+                <input type="text" id="translation" placeholder="ex: Chat">
+            </div>
+            <button class="action-btn" onclick="addWord()">Enregistrer le mot</button>
+        </div>
+
+        <!-- VUE 3 : QUIZ RAPIDE DANS LE BUS -->
+        <div id="view-quiz" class="view">
+            <h2>Mode Flashcard</h2>
+            <div class="quiz-box">
+                <p style="color:var(--text-secondary)">Trouve la traduction :</p>
+                <div class="quiz-word" id="quizPrompt">猫</div>
+                <button class="action-btn" onclick="revealAnswer()" id="quizBtn">Afficher la réponse</button>
+                <p id="quizAnswer" style="font-size: 18px; font-weight: bold; margin-top: 15px; color: var(--success);"></p>
+            </div>
+            <button class="action-btn" style="background:var(--text-secondary); margin-top:15px;" onclick="nextQuizWord()">Mot suivant ➔</button>
+        </div>
+
     </div>
 
-    <h3>Mes mots</h3>
-    <div id="wordList"></div>
-
-    <button class="sync" onclick="syncToESP32()">Synchroniser avec l'ESP32</button>
+    <!-- BARRE DE NAVIGATION -->
+    <nav>
+        <button onclick="switchView('list', this)" class="active">
+            <span class="icon">📖</span>Liste
+        </button>
+        <button onclick="switchView('add', this)">
+            <span class="icon">➕</span>Ajouter
+        </button>
+        <button onclick="switchView('quiz', this); initQuiz();">
+            <span class="icon">⚡</span>Quiz
+        </button>
+    </nav>
 
     <script>
         let words = JSON.parse(localStorage.getItem('vocab_words')) || [
-            { kanji: "猫", kana: "ねこ", translation: "Chat" }
+            { kanji: "猫", kana: "ねこ", translation: "Chat" },
+            { kanji: "水", kana: "みず", translation: "Eau" }
         ];
+
+        let currentQuizIndex = 0;
 
         function saveAndRender() {
             localStorage.setItem('vocab_words', JSON.stringify(words));
             renderList();
         }
 
-        function addWord() {
-            const kanji = document.getElementById('kanji').value;
-            const kana = document.getElementById('kana').value;
-            const translation = document.getElementById('translation').value;
+        function switchView(viewName, btnElement) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('view-' + viewName).classList.add('active');
+            btnElement.classList.add('active');
 
-            if(!kanji || !translation) return alert("Remplis au moins le kanji et la traduction !");
-
-            words.push({ kanji, kana, translation });
-            document.getElementById('kanji').value = '';
-            document.getElementById('kana').value = '';
-            document.getElementById('translation').value = '';
-            saveAndRender();
+            const titles = { list: "📚 Mon Vocabulaire", add: "✍️ Nouveau Mot", quiz: "⚡ Révisions Express" };
+            document.getElementById('headerTitle').innerText = titles[viewName];
         }
 
         function renderList() {
             const listDiv = document.getElementById('wordList');
+            if (words.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:var(--text-secondary)">Aucun mot enregistré.</p>';
+                return;
+            }
             listDiv.innerHTML = '';
             words.forEach((w, index) => {
                 listDiv.innerHTML += `
                     <div class="card">
-                        <div class="kanji">${w.kanji} <span class="kana">[${w.kana}]</span></div>
-                        <div>${w.translation}</div>
+                        <div class="card-content">
+                            <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span></div>
+                            <div class="translation">${w.translation}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteWord(${index})">Suppr</button>
                     </div>
                 `;
             });
         }
 
+        function addWord() {
+            const kanji = document.getElementById('kanji').value.trim();
+            const kana = document.getElementById('kana').value.trim();
+            const translation = document.getElementById('translation').value.trim();
+
+            if(!kanji || !translation) {
+                alert("Remplis au moins le kanji et la traduction !");
+                return;
+            }
+
+            words.push({ kanji, kana, translation });
+            document.getElementById('kanji').value = '';
+            document.getElementById('kana').value = '';
+            document.getElementById('translation').value = '';
+            
+            saveAndRender();
+            switchView('list', document.querySelector('nav button'));
+        }
+
+        function deleteWord(index) {
+            if(confirm("Supprimer ce mot ?")) {
+                words.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        // Gestion du Quiz
+        function initQuiz() {
+            if (words.length === 0) return;
+            currentQuizIndex = Math.floor(Math.random() * words.length);
+            showCurrentQuizCard();
+        }
+
+        function showCurrentQuizCard() {
+            if (words.length === 0) return;
+            const w = words[currentQuizIndex];
+            document.getElementById('quizPrompt').innerText = w.kanji + (w.kana ? ` (${w.kana})` : '');
+            document.getElementById('quizAnswer').innerText = '';
+            document.getElementById('quizBtn').style.display = 'block';
+        }
+
+        function revealAnswer() {
+            const w = words[currentQuizIndex];
+            document.getElementById('quizAnswer').innerText = "Traduction : " + w.translation;
+            document.getElementById('quizBtn').style.display = 'none';
+        }
+
+        function nextQuizWord() {
+            if (words.length === 0) return;
+            currentQuizIndex = (currentQuizIndex + 1) % words.length;
+            showCurrentQuizCard();
+        }
+
         async function syncToESP32() {
-            const espIP = prompt("Entre l'adresse IP locale de ton ESP32 :", "192.168.1.50");
+            const savedIP = localStorage.getItem('esp_ip') || "192.168.1.50";
+            const espIP = prompt("Adresse IP locale de l'ESP32 :", savedIP);
             if (!espIP) return;
+
+            localStorage.setItem('esp_ip', espIP);
 
             try {
                 const response = await fetch(`http://${espIP}/update`, {
