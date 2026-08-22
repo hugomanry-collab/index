@@ -230,9 +230,9 @@
                 <div class="quiz-word" id="quizPrompt">猫</div>
                 
                 <div class="form-group" style="text-align: left; margin-top: 20px;">
-                    <input type="text" id="userAnswerInput" placeholder="Ta réponse..." onkeydown="if(event.key === 'Enter') submitQuizAnswer();">
+                    <input type="text" id="userAnswerInput" placeholder="Ta réponse..." autocomplete="off">
                 </div>
-                <button class="action-btn" id="quizActionBtn" onclick="submitQuizAnswer()">Valider</button>
+                <button class="action-btn" id="quizActionBtn" onclick="handleQuizAction()">Valider</button>
                 <div class="quiz-feedback" id="quizFeedback"></div>
             </div>
         </div>
@@ -259,7 +259,8 @@
 
         let currentQuizIndex = 0;
         let currentQuizLang = 'FR';
-        let isWaitingForNext = false; // Verrou pour éviter les doubles validations ou changements intempestifs
+        let quizState = 'answering'; // 'answering' ou 'waiting_next'
+        let autoNextTimer = null;
 
         function saveAndRender() {
             localStorage.setItem('vocab_words', JSON.stringify(words));
@@ -329,7 +330,10 @@
         function initQuiz() {
             if (words.length === 0) return;
             
-            isWaitingForNext = false;
+            // Nettoyer tout timer en cours
+            if (autoNextTimer) clearTimeout(autoNextTimer);
+            
+            quizState = 'answering';
             document.getElementById('quizActionBtn').innerText = "Valider";
             
             // Choix aléatoire pondéré
@@ -359,20 +363,26 @@
             const inputField = document.getElementById('userAnswerInput');
             inputField.value = '';
             inputField.disabled = false;
-            inputField.focus();
             document.getElementById('quizFeedback').innerText = '';
+            
+            // Remettre le focus proprement
+            setTimeout(() => inputField.focus(), 50);
         }
 
-        function submitQuizAnswer() {
+        function handleQuizAction() {
             if (words.length === 0) return;
 
-            // Si on est déjà en attente, le clic sert à passer directement au mot suivant
-            if (isWaitingForNext) {
+            if (quizState === 'answering') {
+                submitAnswer();
+            } else if (quizState === 'waiting_next') {
+                if (autoNextTimer) clearTimeout(autoNextTimer);
                 initQuiz();
-                return;
             }
+        }
 
-            const userAns = document.getElementById('userAnswerInput').value.trim().toLowerCase();
+        function submitAnswer() {
+            const inputField = document.getElementById('userAnswerInput');
+            const userAns = inputField.value.trim().toLowerCase();
             const w = words[currentQuizIndex];
             
             let isCorrect = false;
@@ -410,18 +420,31 @@
 
             saveAndRender();
 
-            // On change le comportement du bouton pour passer au suivant manuellement ou via un délai fluide sans forcer l'écriture
-            isWaitingForNext = true;
-            document.getElementById('userAnswerInput').disabled = true;
+            // Passage à l'état "en attente du mot suivant"
+            quizState = 'waiting_next';
+            inputField.disabled = true;
             document.getElementById('quizActionBtn').innerText = "Mot suivant ➔";
 
-            // Optionnel : passage automatique fluide après 2.5 secondes si tu ne touches à rien, ou clic direct
-            window.quizTimeout = setTimeout(() => {
-                if (isWaitingForNext) {
+            // L'utilisateur a 3 secondes pour lire avant que ça passe au suivant tout seul, s'il ne clique pas
+            autoNextTimer = setTimeout(() => {
+                if (quizState === 'waiting_next') {
                     initQuiz();
                 }
-            }, 2500);
+            }, 3000);
         }
+
+        // Gestion propre de la touche "Entrée" du clavier virtuel sans effet rebond
+        document.getElementById('userAnswerInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Empêche le comportement par défaut du formulaire
+                if (quizState === 'answering') {
+                    submitAnswer();
+                } else if (quizState === 'waiting_next') {
+                    if (autoNextTimer) clearTimeout(autoNextTimer);
+                    initQuiz();
+                }
+            }
+        });
 
         // --- SYNCHRONISATION BIDIRECTIONNELLE ---
         async function syncToESP32() {
