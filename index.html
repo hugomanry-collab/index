@@ -8,7 +8,7 @@
         :root {
             --primary: #007aff;
             --success: #34c759;
-            --warning: #ff9500; /* Nouvelle couleur Orange pour partiel */
+            --warning: #ff9500;
             --danger: #ff3b30;
             --bg: #f2f2f7;
             --card-bg: #ffffff;
@@ -255,8 +255,11 @@
     </nav>
 
     <script>
+        // Base de données initiale enrichie avec une large sélection de vocabulaire JLPT N5
         let words = JSON.parse(localStorage.getItem('vocab_words')) || [
+            { kanji: "私", kana: "わたし", translation: "je, moi", weight_FR: 3, weight_JP: 3 },
             { kanji: "猫", kana: "ねこ", translation: "chat", weight_FR: 3, weight_JP: 3 },
+            { kanji: "犬", kana: "いぬ", translation: "chien", weight_FR: 3, weight_JP: 3 },
             { kanji: "水", kana: "みず", translation: "eau", weight_FR: 3, weight_JP: 3 },
             { kanji: "食べる", kana: "たべる", translation: "manger", weight_FR: 3, weight_JP: 3 },
             { kanji: "飲む", kana: "のむ", translation: "boire", weight_FR: 3, weight_JP: 3 },
@@ -270,7 +273,27 @@
             { kanji: "車", kana: "くるま", translation: "voiture, automobile", weight_FR: 3, weight_JP: 3 },
             { kanji: "時間", kana: "じかん", translation: "temps, heure", weight_FR: 3, weight_JP: 3 },
             { kanji: "今日", kana: "きょう", translation: "aujourd'hui", weight_FR: 3, weight_JP: 3 },
-            { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 }
+            { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 },
+            { kanji: "昨日", kana: "きのう", translation: "hier", weight_FR: 3, weight_JP: 3 },
+            { kanji: "食べる", kana: "たべる", translation: "manger", weight_FR: 3, weight_JP: 3 },
+            { kanji: "買う", kana: "かう", translation: "acheter", weight_FR: 3, weight_JP: 3 },
+            { kanji: "話す", kana: "はなし", translation: "parler, discuter", weight_FR: 3, weight_JP: 3 },
+            { kanji: "読む", kana: "よむ", translation: "lire", weight_FR: 3, weight_JP: 3 },
+            { kanji: "書く", kana: "かく", translation: "écrire", weight_FR: 3, weight_JP: 3 },
+            { kanji: "聞く", kana: "きく", translation: "écouter, entendre, demander", weight_FR: 3, weight_JP: 3 },
+            { kanji: "魚", kana: "さかな", translation: "poisson", weight_FR: 3, weight_JP: 3 },
+            { kanji: "肉", kana: "にく", translation: "viande", weight_FR: 3, weight_JP: 3 },
+            { kanji: "野菜", kana: "やさい", translation: "légume", weight_FR: 3, weight_JP: 3 },
+            { kanji: "果物", kana: "くだもの", translation: "fruit", weight_FR: 3, weight_JP: 3 },
+            { kanji: "大きい", kana: "おおきい", translation: "grand", weight_FR: 3, weight_JP: 3 },
+            { kanji: "小さい", kana: "ちいさい", translation: "petit", weight_FR: 3, weight_JP: 3 },
+            { kanji: "新しい", kana: "あたらしい", translation: "nouveau, neuf", weight_FR: 3, weight_JP: 3 },
+            { kanji: "古い", kana: "ふるい", translation: "vieux, ancien", weight_FR: 3, weight_JP: 3 },
+            { kanji: "高い", kana: "たかい", translation: "haut, cher, élevé", weight_FR: 3, weight_JP: 3 },
+            { kanji: "安い", kana: "やすい", translation: "bon marché, pas cher", weight_FR: 3, weight_JP: 3 },
+            { kanji: "友達", kana: "ともだち", translation: "ami, copain", weight_FR: 3, weight_JP: 3 },
+            { kanji: "父", kana: "ちち", translation: "père", weight_FR: 3, weight_JP: 3 },
+            { kanji: "母", kana: "はは", translation: "mère", weight_FR: 3, weight_JP: 3 }
         ];
 
         let currentQuizIndex = 0;
@@ -319,7 +342,7 @@
 
         function addWord() {
             const kanji = document.getElementById('kanji').value.trim();
-            const kana = document.getElementById('kana'].value.trim();
+            const kana = document.getElementById('kana').value.trim();
             const translation = document.getElementById('translation').value.trim();
 
             if(!kanji || !translation) {
@@ -381,7 +404,7 @@
                 document.getElementById('quizPrompt').innerText = w.kanji;
             } else {
                 document.getElementById('quizPromptLabel').innerText = "Traduis en japonais (Kanji ou Kana) :";
-                document.getElementById('quizPrompt').innerText = w.translation; // Affiche tous les sens pour aider à traduire en japonais
+                document.getElementById('quizPrompt').innerText = w.translation;
             }
             
             const inputField = document.getElementById('userAnswerInput');
@@ -411,21 +434,17 @@
             if (currentQuizLang === 'FR') {
                 const validTranslations = w.translation.toLowerCase().split(',').map(s => s.trim());
                 
-                // Si le mot a plusieurs sens (ex: "voir, regarder")
                 if (validTranslations.length > 1) {
                     if (validTranslations.includes(userAns)) {
-                        // Il a trouvé une des significations mais pas toutes -> ORANGE (Partiel)
                         feedback.style.color = "var(--warning)";
                         feedback.innerText = `⚠️ Partiel. Autre sens : ${w.translation}`;
-                        w.weight_FR = (w.weight_FR || 3) + 1; // Augmente un peu (+1)
+                        w.weight_FR = (w.weight_FR || 3) + 1;
                     } else {
-                        // Rien trouvé -> ROUGE (Faux)
                         feedback.style.color = "var(--danger)";
                         feedback.innerText = `✖ Faux. Réponse : ${w.translation}`;
-                        w.weight_FR = (w.weight_FR || 3) + 2; // Augmente fort (+2)
+                        w.weight_FR = (w.weight_FR || 3) + 2;
                     }
                 } else {
-                    // S'il n'y a qu'un seul sens classique
                     if (userAns === validTranslations[0]) {
                         feedback.style.color = "var(--success)";
                         feedback.innerText = "✔ Correct !";
@@ -437,7 +456,6 @@
                     }
                 }
             } else {
-                // Mode Japonais
                 const kanjiMatch = w.kanji && userAns === w.kanji.toLowerCase();
                 const kanaMatch = w.kana && userAns === w.kana.toLowerCase();
                 if (kanjiMatch || kanaMatch) {
