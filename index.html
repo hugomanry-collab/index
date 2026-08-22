@@ -8,6 +8,7 @@
         :root {
             --primary: #007aff;
             --success: #34c759;
+            --warning: #ff9500; /* Nouvelle couleur Orange pour partiel */
             --danger: #ff3b30;
             --bg: #f2f2f7;
             --card-bg: #ffffff;
@@ -215,15 +216,15 @@
             <h2>Ajouter un mot</h2>
             <div class="form-group">
                 <label>Kanji / Japonais</label>
-                <input type="text" id="kanji" placeholder="ex: 猫">
+                <input type="text" id="kanji" placeholder="ex: 食べる">
             </div>
             <div class="form-group">
                 <label>Kana (Lecture)</label>
-                <input type="text" id="kana" placeholder="ex: ねこ">
+                <input type="text" id="kana" placeholder="ex: たべる">
             </div>
             <div class="form-group">
-                <label>Traduction française</label>
-                <input type="text" id="translation" placeholder="ex: Chat">
+                <label>Traduction française (Séparez les synonymes par des virgules)</label>
+                <input type="text" id="translation" placeholder="ex: manger, consommer">
             </div>
             <button class="action-btn" onclick="addWord()">Enregistrer le mot</button>
         </div>
@@ -233,7 +234,7 @@
             <h2>Quiz de révision</h2>
             <div class="quiz-box">
                 <p style="color:var(--text-secondary)" id="quizPromptLabel">Traduis en français :</p>
-                <div class="quiz-word" id="quizPrompt">猫</div>
+                <div class="quiz-word" id="quizPrompt"></div>
                 
                 <div class="form-group" style="text-align: left; margin-top: 20px;">
                     <input type="text" id="userAnswerInput" placeholder="Ta réponse..." autocomplete="off">
@@ -249,24 +250,33 @@
         <button onclick="switchView('list', this)" class="active">
             <span class="icon">📖</span>Liste
         </button>
-        <button onclick="switchView('add', this)">
-            <span class="icon">➕</span>Ajouter
-        </button>
-        <button onclick="switchView('quiz', this); initQuiz();">
-            <span class="icon">⚡</span>Quiz
-        </button>
+        <button onclick="switchView('add', this)"><span class="icon">➕</span>Ajouter</button>
+        <button onclick="switchView('quiz', this); initQuiz();"><span class="icon">⚡</span>Quiz</button>
     </nav>
 
     <script>
         let words = JSON.parse(localStorage.getItem('vocab_words')) || [
-            { kanji: "猫", kana: "ねこ", translation: "Chat", weight_FR: 3, weight_JP: 3 },
-            { kanji: "水", kana: "みず", translation: "Eau", weight_FR: 3, weight_JP: 3 }
+            { kanji: "猫", kana: "ねこ", translation: "chat", weight_FR: 3, weight_JP: 3 },
+            { kanji: "水", kana: "みず", translation: "eau", weight_FR: 3, weight_JP: 3 },
+            { kanji: "食べる", kana: "たべる", translation: "manger", weight_FR: 3, weight_JP: 3 },
+            { kanji: "飲む", kana: "のむ", translation: "boire", weight_FR: 3, weight_JP: 3 },
+            { kanji: "見る", kana: "みる", translation: "voir, regarder", weight_FR: 3, weight_JP: 3 },
+            { kanji: "行く", kana: "いく", translation: "aller", weight_FR: 3, weight_JP: 3 },
+            { kanji: "来る", kana: "くる", translation: "venir", weight_FR: 3, weight_JP: 3 },
+            { kanji: "学校", kana: "がっこう", translation: "école", weight_FR: 3, weight_JP: 3 },
+            { kanji: "先生", kana: "せんせい", translation: "professeur, enseignant", weight_FR: 3, weight_JP: 3 },
+            { kanji: "学生", kana: "がくせい", translation: "étudiant, élève", weight_FR: 3, weight_JP: 3 },
+            { kanji: "本", kana: "ほん", translation: "livre", weight_FR: 3, weight_JP: 3 },
+            { kanji: "車", kana: "くるま", translation: "voiture, automobile", weight_FR: 3, weight_JP: 3 },
+            { kanji: "時間", kana: "じかん", translation: "temps, heure", weight_FR: 3, weight_JP: 3 },
+            { kanji: "今日", kana: "きょう", translation: "aujourd'hui", weight_FR: 3, weight_JP: 3 },
+            { kanji: "明日", kana: "あした", translation: "demain", weight_FR: 3, weight_JP: 3 }
         ];
 
         let currentQuizIndex = 0;
-        let lastQuizIndex = -1; // Mémorise le dernier index pour éviter les répétitions
+        let lastQuizIndex = -1;
         let currentQuizLang = 'FR';
-        let quizState = 'answering'; // 'answering' ou 'waiting_next'
+        let quizState = 'answering';
         let autoNextTimer = null;
 
         function saveAndRender() {
@@ -299,7 +309,7 @@
                         <div class="card-content">
                             <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span></div>
                             <div class="translation">${w.translation}</div>
-                            <div class="card-stats">Poids révision - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
+                            <div class="card-stats">Poids - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
                         </div>
                         <button class="delete-btn" onclick="deleteWord(${index})">Suppr</button>
                     </div>
@@ -309,7 +319,7 @@
 
         function addWord() {
             const kanji = document.getElementById('kanji').value.trim();
-            const kana = document.getElementById('kana').value.trim();
+            const kana = document.getElementById('kana'].value.trim();
             const translation = document.getElementById('translation').value.trim();
 
             if(!kanji || !translation) {
@@ -333,19 +343,15 @@
             }
         }
 
-        // --- GESTION DU QUIZ ---
         function initQuiz() {
             if (words.length === 0) return;
-            
-            // Nettoyer tout timer en cours
             if (autoNextTimer) clearTimeout(autoNextTimer);
             
             quizState = 'answering';
             const btn = document.getElementById('quizActionBtn');
             btn.innerText = "Valider";
-            btn.disabled = false; // Réactive le bouton pour la nouvelle question
+            btn.disabled = false;
             
-            // Choix aléatoire pondéré avec anti-répétition consécutive
             let nextIndex = -1;
             let attempts = 0;
             
@@ -367,7 +373,7 @@
             }
             
             currentQuizIndex = nextIndex === -1 ? 0 : nextIndex;
-            lastQuizIndex = currentQuizIndex; // Mémorise l'index actuel
+            lastQuizIndex = currentQuizIndex;
 
             const w = words[currentQuizIndex];
             if (currentQuizLang === 'FR') {
@@ -375,21 +381,18 @@
                 document.getElementById('quizPrompt').innerText = w.kanji;
             } else {
                 document.getElementById('quizPromptLabel').innerText = "Traduis en japonais (Kanji ou Kana) :";
-                document.getElementById('quizPrompt').innerText = w.translation;
+                document.getElementById('quizPrompt').innerText = w.translation; // Affiche tous les sens pour aider à traduire en japonais
             }
             
             const inputField = document.getElementById('userAnswerInput');
             inputField.value = '';
             inputField.disabled = false;
             document.getElementById('quizFeedback').innerText = '';
-            
-            // Remettre le focus proprement
             setTimeout(() => inputField.focus(), 50);
         }
 
         function handleQuizAction() {
             if (words.length === 0) return;
-
             if (quizState === 'answering') {
                 submitAnswer();
             } else if (quizState === 'waiting_next') {
@@ -403,58 +406,66 @@
             const userAns = inputField.value.trim().toLowerCase();
             const w = words[currentQuizIndex];
             
-            let isCorrect = false;
             const feedback = document.getElementById('quizFeedback');
 
             if (currentQuizLang === 'FR') {
-                isCorrect = (userAns === w.translation.toLowerCase());
+                const validTranslations = w.translation.toLowerCase().split(',').map(s => s.trim());
+                
+                // Si le mot a plusieurs sens (ex: "voir, regarder")
+                if (validTranslations.length > 1) {
+                    if (validTranslations.includes(userAns)) {
+                        // Il a trouvé une des significations mais pas toutes -> ORANGE (Partiel)
+                        feedback.style.color = "var(--warning)";
+                        feedback.innerText = `⚠️ Partiel. Autre sens : ${w.translation}`;
+                        w.weight_FR = (w.weight_FR || 3) + 1; // Augmente un peu (+1)
+                    } else {
+                        // Rien trouvé -> ROUGE (Faux)
+                        feedback.style.color = "var(--danger)";
+                        feedback.innerText = `✖ Faux. Réponse : ${w.translation}`;
+                        w.weight_FR = (w.weight_FR || 3) + 2; // Augmente fort (+2)
+                    }
+                } else {
+                    // S'il n'y a qu'un seul sens classique
+                    if (userAns === validTranslations[0]) {
+                        feedback.style.color = "var(--success)";
+                        feedback.innerText = "✔ Correct !";
+                        if (w.weight_FR > 1) w.weight_FR--;
+                    } else {
+                        feedback.style.color = "var(--danger)";
+                        feedback.innerText = `✖ Faux. Réponse : ${w.translation}`;
+                        w.weight_FR = (w.weight_FR || 3) + 2;
+                    }
+                }
             } else {
+                // Mode Japonais
                 const kanjiMatch = w.kanji && userAns === w.kanji.toLowerCase();
                 const kanaMatch = w.kana && userAns === w.kana.toLowerCase();
-                isCorrect = kanjiMatch || kanaMatch;
-            }
-
-            if (isCorrect) {
-                feedback.style.color = "var(--success)";
-                feedback.innerText = "✔ Correct !";
-                if (currentQuizLang === 'FR') {
-                    if (w.weight_FR > 1) w.weight_FR--;
-                } else {
+                if (kanjiMatch || kanaMatch) {
+                    feedback.style.color = "var(--success)";
+                    feedback.innerText = "✔ Correct !";
                     if (w.weight_JP > 1) w.weight_JP--;
-                }
-            } else {
-                feedback.style.color = "var(--danger)";
-                if (currentQuizLang === 'FR') {
-                    feedback.innerText = `✖ Faux. Réponse : ${w.translation}`;
                 } else {
+                    feedback.style.color = "var(--danger)";
                     feedback.innerText = `✖ Faux. Réponse : ${w.kanji}${w.kana ? ' (' + w.kana + ')' : ''}`;
-                }
-                if (currentQuizLang === 'FR') {
-                    w.weight_FR = (w.weight_FR || 3) + 2;
-                } else {
                     w.weight_JP = (w.weight_JP || 3) + 2;
                 }
             }
 
             saveAndRender();
 
-            // Passage à l'état "en attente du mot suivant" + Verrouillage visuel du bouton
             quizState = 'waiting_next';
             inputField.disabled = true;
             
             const btn = document.getElementById('quizActionBtn');
-            btn.disabled = true; // Désactive et grise le bouton pendant l'attente
+            btn.disabled = true;
             btn.innerText = "Mot suivant ➔";
             
-            // Réactive brièvement le bouton après un court délai pour permettre un clic manuel anticipé si souhaité, 
-    // ou laisse le setTimeout gérer le passage automatique au bout de 3 secondes.
-    setTimeout(() => {
-        if (quizState === 'waiting_next') {
-            btn.disabled = false; 
-        }
-    }, 500);
+            setTimeout(() => {
+                if (quizState === 'waiting_next') {
+                    btn.disabled = false; 
+                }
+            }, 500);
 
-            // L'utilisateur a 3 secondes pour lire avant que ça passe au suivant tout seul
             autoNextTimer = setTimeout(() => {
                 if (quizState === 'waiting_next') {
                     initQuiz();
@@ -462,10 +473,9 @@
             }, 3000);
         }
 
-        // Gestion propre de la touche "Entrée" du clavier virtuel sans effet rebond
         document.getElementById('userAnswerInput').addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Empêche le comportement par défaut du formulaire
+                event.preventDefault();
                 if (quizState === 'answering') {
                     submitAnswer();
                 } else if (quizState === 'waiting_next') {
@@ -475,7 +485,6 @@
             }
         });
 
-        // --- SYNCHRONISATION BIDIRECTIONNELLE ---
         async function syncToESP32() {
             const savedIP = localStorage.getItem('esp_ip') || "192.168.1.200";
             const espIP = prompt("Adresse IP locale de l'ESP32 :", savedIP);
