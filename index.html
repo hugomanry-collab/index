@@ -46,7 +46,6 @@
             text-align: center;
         }
 
-        /* Bouton icône de sélection de grille */
         .grid-toggle-icon {
             background: none;
             border: none;
@@ -103,26 +102,8 @@
             margin-top: 6px;
         }
 
-        .delete-btn {
-            background: #ffe5e5;
-            color: var(--danger);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
         .form-group {
             margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--text-secondary);
         }
 
         input {
@@ -153,11 +134,6 @@
         button.action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        button.sync-btn {
-            background: var(--success);
-            margin-top: 25px;
         }
 
         nav {
@@ -214,7 +190,6 @@
             margin-top: 15px;
         }
 
-        /* Modal de la grille interactive type image */
         #gridModal {
             display: none;
             position: fixed;
@@ -278,7 +253,6 @@
             user-select: none;
             transition: all 0.15s ease;
         }
-        /* Style sélectionné : entouré de bleu et un peu plus gros */
         .grid-cell.selected {
             border-color: var(--primary);
             background: #eef5ff;
@@ -307,7 +281,6 @@
     <header>
         <div style="width: 30px;"></div>
         <div class="header-title" id="headerTitle">📚 Kanjis JLPT N5 (80)</div>
-        <!-- Petite icône dans un coin pour ouvrir le menu grille -->
         <button class="grid-toggle-icon" onclick="openGridModal()" title="Sélectionner les kanjis">🎛️</button>
     </header>
 
@@ -317,28 +290,9 @@
         <div id="view-list" class="view active">
             <h2>Mes kanjis enregistrés</h2>
             <div id="wordList"></div>
-            <button class="action-btn sync-btn" onclick="syncToESP32()">🔄 Synchroniser avec l'ESP32</button>
         </div>
 
-        <!-- VUE 2 : AJOUTER -->
-        <div id="view-add" class="view">
-            <h2>Ajouter un kanji</h2>
-            <div class="form-group">
-                <label>Kanji</label>
-                <input type="text" id="kanji" placeholder="ex: 一">
-            </div>
-            <div class="form-group">
-                <label>Kana (Lecture)</label>
-                <input type="text" id="kana" placeholder="ex: ひと">
-            </div>
-            <div class="form-group">
-                <label>Traduction française</label>
-                <input type="text" id="translation" placeholder="ex: un">
-            </div>
-            <button class="action-btn" onclick="addWord()">Enregistrer</button>
-        </div>
-
-        <!-- VUE 3 : QUIZ INTERACTIF -->
+        <!-- VUE 2 : QUIZ INTERACTIF -->
         <div id="view-quiz" class="view">
             <h2>Quiz de révision</h2>
             <div class="quiz-box">
@@ -355,7 +309,7 @@
 
     </div>
 
-    <!-- MODAL DE LA GRILLE TYPE IMAGE -->
+    <!-- MODAL DE LA GRILLE -->
     <div id="gridModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -378,12 +332,10 @@
         <button onclick="switchView('list', this)" class="active">
             <span class="icon">📖</span>Liste
         </button>
-        <button onclick="switchView('add', this)"><span class="icon">➕</span>Ajouter</button>
         <button onclick="switchView('quiz', this)"><span class="icon">⚡</span>Quiz</button>
     </nav>
 
     <script>
-        // Les exacts 80 kanjis de la grille JLPT N5 (Clé: vocab_kanji_n5_80_v3)
         let words = JSON.parse(localStorage.getItem('vocab_kanji_n5_80_v3')) || [
             { kanji: "一", kana: "いち", translation: "un", weight_FR: 3, weight_JP: 3, activeInQuiz: true },
             { kanji: "二", kana: "に", translation: "deux", weight_FR: 3, weight_JP: 3, activeInQuiz: true },
@@ -482,8 +434,7 @@
             if (!btnElement) {
                 const navButtons = document.querySelectorAll('nav button');
                 if (viewName === 'list') btnElement = navButtons[0];
-                if (viewName === 'add') btnElement = navButtons[1];
-                if (viewName === 'quiz') btnElement = navButtons[2];
+                if (viewName === 'quiz') btnElement = navButtons[1];
             }
 
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -492,10 +443,9 @@
             document.getElementById('view-' + viewName).classList.add('active');
             if (btnElement) btnElement.classList.add('active');
 
-            const titles = { list: "📚 Kanjis JLPT N5 (80)", add: "✍️ Nouveau Kanji", quiz: "⚡ Quiz Interactif" };
+            const titles = { list: "📚 Kanjis JLPT N5 (80)", quiz: "⚡ Quiz Interactif" };
             document.getElementById('headerTitle').innerText = titles[viewName];
             
-            // Empêche la triche : si on change de page vers le quiz et qu'aucune question n'est active, on l'initialise. Si elle est en cours, on la garde.
             if(viewName === 'quiz' && currentQuizIndex === -1) {
                 initQuiz();
             }
@@ -508,7 +458,7 @@
                 return;
             }
             listDiv.innerHTML = '';
-            words.forEach((w, index) => {
+            words.forEach((w) => {
                 const statusBadge = w.activeInQuiz !== false ? '<span style="color:var(--success)">● Actif</span>' : '<span style="color:var(--text-secondary)">○ Inactif</span>';
                 listDiv.innerHTML += `
                     <div class="card">
@@ -517,13 +467,11 @@
                             <div class="translation">${w.translation}</div>
                             <div class="card-stats">Poids - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
                         </div>
-                        <button class="delete-btn" onclick="deleteWord(${index})">Suppr</button>
                     </div>
                 `;
             });
         }
 
-        // --- GESTION DE LA MODALE GRILLE TYPE IMAGE ---
         function openGridModal() {
             renderGridModal();
             document.getElementById('gridModal').classList.add('active');
@@ -538,7 +486,7 @@
             const gridContainer = document.getElementById('kanjiGridContainer');
             gridContainer.innerHTML = '';
             
-            words.forEach((w, index) => {
+            words.forEach((w) => {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
                 if (w.activeInQuiz !== false) {
@@ -562,32 +510,6 @@
             renderGridModal();
         }
 
-        function addWord() {
-            const kanji = document.getElementById('kanji').value.trim();
-            const kana = document.getElementById('kana').value.trim();
-            const translation = document.getElementById('translation').value.trim();
-
-            if(!kanji || !translation) {
-                alert("Remplis au moins le kanji et la traduction !");
-                return;
-            }
-
-            words.push({ kanji, kana, translation, weight_FR: 3, weight_JP: 3, activeInQuiz: true });
-            document.getElementById('kanji').value = '';
-            document.getElementById('kana').value = '';
-            document.getElementById('translation').value = '';
-            
-            saveAndRender();
-            switchView('list', document.querySelectorAll('nav button')[0]);
-        }
-
-        function deleteWord(index) {
-            if(confirm("Supprimer ce kanji ?")) {
-                words.splice(index, 1);
-                saveAndRender();
-            }
-        }
-
         function initQuiz() {
             const activeWords = words.filter(w => w.activeInQuiz !== false);
 
@@ -596,7 +518,7 @@
                 document.getElementById('quizPrompt').innerText = "Aucun kanji coché !";
                 document.getElementById('userAnswerInput').disabled = true;
                 document.getElementById('quizActionBtn').disabled = true;
-                document.getElementById('quizFeedback').innerText = "Ouvre la grille (icône ️ en haut à droite) pour cocher au moins un kanji.";
+                document.getElementById('quizFeedback').innerText = "Ouvre la grille (icône 🎛️ en haut à droite) pour cocher au moins un kanji.";
                 return;
             }
 
@@ -735,35 +657,6 @@
                 handleQuizAction();
             }
         });
-
-        async function syncToESP32() {
-            const savedIP = localStorage.getItem('esp_ip')  || "192.168.1.200";
-            const espIP = prompt("Adresse IP locale de l'ESP32 :", savedIP);
-            if (!espIP) return;
-
-            localStorage.setItem('esp_ip', espIP);
-
-            try {
-                const response = await fetch(`http://${espIP}/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(words)
-                });
-                
-                if(response.ok) {
-                    const updatedWordsFromESP = await response.json();
-                    if (Array.isArray(updatedWordsFromESP)) {
-                        words = updatedWordsFromESP;
-                        saveAndRender();
-                    }
-                    alert("Synchronisation et fusion des statistiques réussies !");
-                } else {
-                    alert("Erreur du côté de l'ESP32.");
-                }
-            } catch (error) {
-                alert("Impossible de joindre l'ESP32 (Vérifie le Wi-Fi local).");
-            }
-        }
 
         renderList();
     </script>
