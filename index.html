@@ -362,13 +362,11 @@
 
     <div class="container">
         
-        <!-- VUE 1 : LISTE DES KANJIS PAR NIVEAUX ACTIFS -->
         <div id="view-list" class="view active">
             <h2>Kanjis des niveaux actifs</h2>
             <div id="wordList"></div>
         </div>
 
-        <!-- VUE 2 : GESTION DES NIVEAUX -->
         <div id="view-levels" class="view">
             <h2>Gestion des niveaux</h2>
             <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Coche un niveau pour afficher tous ses kanjis dans le menu "Liste".</p>
@@ -376,7 +374,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N5</h3>
-                    <p>80 kanjis essentiels (débutant)</p>
+                    <p id="desc-n5">Chargement...</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n5" onchange="toggleLevel('N5', this.checked)">
@@ -387,7 +385,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N4</h3>
-                    <p>Kanjis intermédiaires bas</p>
+                    <p id="desc-n4">Chargement...</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n4" onchange="toggleLevel('N4', this.checked)">
@@ -398,7 +396,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N3</h3>
-                    <p>Kanjis niveau intermédiaire</p>
+                    <p id="desc-n3">Chargement...</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n3" onchange="toggleLevel('N3', this.checked)">
@@ -409,7 +407,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N2</h3>
-                    <p>Kanjis niveau avancé</p>
+                    <p id="desc-n2">Chargement...</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n2" onchange="toggleLevel('N2', this.checked)">
@@ -420,7 +418,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N1</h3>
-                    <p>Kanjis niveau expert</p>
+                    <p id="desc-n1">Chargement...</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n1" onchange="toggleLevel('N1', this.checked)">
@@ -429,7 +427,6 @@
             </div>
         </div>
 
-        <!-- VUE 3 : QUIZ INTERACTIF -->
         <div id="view-quiz" class="view">
             <h2>Quiz de révision</h2>
             <div class="quiz-box">
@@ -446,7 +443,6 @@
 
     </div>
 
-    <!-- MODAL DE LA GRILLE INTERACTIVE -->
     <div id="gridModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -484,125 +480,130 @@
     </nav>
 
     <script>
-        // Base de données complète pour tous les niveaux (N5 à N1)
-        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_full_v5')) || {
+        // Base de données complète structurée avec ~2136 kanjis et statistiques de réussite
+        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_full_v6')) || {
             "N5": {
                 levelActive: true,
+                desc: "Kanjis essentiels (débutant)",
                 words: [
-                    { kanji: "一", kana: "いち", translation: "un", activeInQuiz: true, weight: 1 },
-                    { kanji: "二", kana: "に", translation: "deux", activeInQuiz: true, weight: 1 },
-                    { kanji: "三", kana: "さん", translation: "trois", activeInQuiz: true, weight: 1 },
-                    { kanji: "四", kana: "し / よん", translation: "quatre", activeInQuiz: true, weight: 1 },
-                    { kanji: "五", kana: "ご", translation: "cinq", activeInQuiz: true, weight: 1 },
-                    { kanji: "六", kana: "ろく", translation: "six", activeInQuiz: true, weight: 1 },
-                    { kanji: "七", kana: "しち / なな", translation: "sept", activeInQuiz: true, weight: 1 },
-                    { kanji: "八", kana: "はち", translation: "huit", activeInQuiz: true, weight: 1 },
-                    { kanji: "九", kana: "きゅう / く", translation: "neuf", activeInQuiz: true, weight: 1 },
-                    { kanji: "十", kana: "じゅう", translation: "dix", activeInQuiz: true, weight: 1 },
-                    { kanji: "日", kana: "ひ / にち", translation: "jour, soleil", activeInQuiz: true, weight: 1 },
-                    { kanji: "月", kana: "つき / げつ", translation: "lune, mois", activeInQuiz: true, weight: 1 },
-                    { kanji: "白", kana: "しろ", translation: "blanc", activeInQuiz: true, weight: 1 },
-                    { kanji: "百", kana: "ひゃく", translation: "cent", activeInQuiz: true, weight: 1 },
-                    { kanji: "中", kana: "なか", translation: "milieu, centre, dans", activeInQuiz: true, weight: 1 },
-                    { kanji: "千", kana: "せん", translation: "mille", activeInQuiz: true, weight: 1 },
-                    { kanji: "上", kana: "うえ", translation: "haut, dessus", activeInQuiz: true, weight: 1 },
-                    { kanji: "下", kana: "した", translation: "bas, dessous", activeInQuiz: true, weight: 1 },
-                    { kanji: "見", kana: "みる", translation: "voir", activeInQuiz: true, weight: 1 },
-                    { kanji: "万", kana: "まん", translation: "dix mille", activeInQuiz: true, weight: 1 },
-                    { kanji: "左", kana: "ひだり", translation: "gauche", activeInQuiz: true, weight: 1 },
-                    { kanji: "右", kana: "みぎ", translation: "droite", activeInQuiz: true, weight: 1 },
-                    { kanji: "子", kana: "こ", translation: "enfant", activeInQuiz: true, weight: 1 },
-                    { kanji: "女", kana: "おんな", translation: "femme", activeInQuiz: true, weight: 1 },
-                    { kanji: "母", kana: "はは", translation: "mère", activeInQuiz: true, weight: 1 },
-                    { kanji: "小", kana: "ちいさい", translation: "petit", activeInQuiz: true, weight: 1 },
-                    { kanji: "大", kana: "おおきい", translation: "grand", activeInQuiz: true, weight: 1 },
-                    { kanji: "外", kana: "そと", translation: "dehors, extérieur", activeInQuiz: true, weight: 1 },
-                    { kanji: "名", kana: "な", translation: "nom", activeInQuiz: true, weight: 1 },
-                    { kanji: "川", kana: "かわ", translation: "rivière, fleuve", activeInQuiz: true, weight: 1 },
-                    { kanji: "水", kana: "みず", translation: "eau", activeInQuiz: true, weight: 1 },
-                    { kanji: "土", kana: "つち", translation: "sol, terre", activeInQuiz: true, weight: 1 },
-                    { kanji: "時", kana: "とき", translation: "temps, heure", activeInQuiz: true, weight: 1 },
-                    { kanji: "火", kana: "ひ", translation: "feu", activeInQuiz: true, weight: 1 },
-                    { kanji: "木", kana: "き", translation: "arbre, bois", activeInQuiz: true, weight: 1 },
-                    { kanji: "本", kana: "ほん", translation: "livre, origine", activeInQuiz: true, weight: 1 },
-                    { kanji: "先", kana: "さき", translation: "précédent, futur", activeInQuiz: true, weight: 1 },
-                    { kanji: "金", kana: "かね", translation: "or, argent, métal", activeInQuiz: true, weight: 1 },
-                    { kanji: "車", kana: "くるま", translation: "voiture", activeInQuiz: true, weight: 1 },
-                    { kanji: "前", kana: "まえ", translation: "devant, avant", activeInQuiz: true, weight: 1 },
-                    { kanji: "高", kana: "たかい", translation: "haut, cher", activeInQuiz: true, weight: 1 },
-                    { kanji: "学", kana: "がく", translation: "étude, apprentissage", activeInQuiz: true, weight: 1 },
-                    { kanji: "書", kana: "かく", translation: "écrire", activeInQuiz: true, weight: 1 },
-                    { kanji: "話", kana: "はなし", translation: "parler, discussion", activeInQuiz: true, weight: 1 },
-                    { kanji: "語", kana: "ご", translation: "langue, mot", activeInQuiz: true, weight: 1 },
-                    { kanji: "読", kana: "よむ", translation: "lire", activeInQuiz: true, weight: 1 },
-                    { kanji: "雨", kana: "あめ", translation: "pluie", activeInQuiz: true, weight: 1 },
-                    { kanji: "天", kana: "てん", translation: "cieux, paradis", activeInQuiz: true, weight: 1 },
-                    { kanji: "北", kana: "きた", translation: "nord", activeInQuiz: true, weight: 1 },
-                    { kanji: "毎", kana: "まい", translation: "chaque", activeInQuiz: true, weight: 1 },
-                    { kanji: "東", kana: "ひがし", translation: "est", activeInQuiz: true, weight: 1 },
-                    { kanji: "電", kana: "でん", translation: "électricité", activeInQuiz: true, weight: 1 },
-                    { kanji: "午", kana: "ご", translation: "midi", activeInQuiz: true, weight: 1 },
-                    { kanji: "国", kana: "くに", translation: "pays", activeInQuiz: true, weight: 1 },
-                    { kanji: "友", kana: "とも", translation: "ami", activeInQuiz: true, weight: 1 },
-                    { kanji: "出", kana: "でる", translation: "sortir", activeInQuiz: true, weight: 1 },
-                    { kanji: "山", kana: "やま", translation: "montagne", activeInQuiz: true, weight: 1 },
-                    { kanji: "入", kana: "いる / はいる", translation: "entrer", activeInQuiz: true, weight: 1 },
-                    { kanji: "分", kana: "ぶん / ふん", translation: "partie, minute", activeInQuiz: true, weight: 1 },
-                    { kanji: "男", kana: "おとこ", translation: "homme", activeInQuiz: true, weight: 1 },
-                    { kanji: "行", kana: "いく", translation: "aller", activeInQuiz: true, weight: 1 },
-                    { kanji: "人", kana: "ひと", translation: "personne", activeInQuiz: true, weight: 1 },
-                    { kanji: "休", kana: "やすむ", translation: "se reposer", activeInQuiz: true, weight: 1 },
-                    { kanji: "何", kana: "なに / なん", translation: "quoi, quel", activeInQuiz: true, weight: 1 },
-                    { kanji: "年", kana: "とし", translation: "an, année", activeInQuiz: true, weight: 1 },
-                    { kanji: "半", kana: "はん", translation: "moitié", activeInQuiz: true, weight: 1 },
-                    { kanji: "父", kana: "ちち", translation: "père", activeInQuiz: true, weight: 1 },
-                    { kanji: "校", kana: "こう", translation: "école", activeInQuiz: true, weight: 1 },
-                    { kanji: "後", kana: "あと / うしろ", translation: "après, derrière", activeInQuiz: true, weight: 1 },
-                    { kanji: "食", kana: "たべる", translation: "manger", activeInQuiz: true, weight: 1 },
-                    { kanji: "生", kana: "せい / 生きる", translation: "vie, naître", activeInQuiz: true, weight: 1 },
-                    { kanji: "今", kana: "いま", translation: "maintenant", activeInQuiz: true, weight: 1 },
-                    { kanji: "西", kana: "にし", translation: "ouest", activeInQuiz: true, weight: 1 },
-                    { kanji: "南", kana: "みなみ", translation: "sud", activeInQuiz: true, weight: 1 },
-                    { kanji: "間", kana: "あいだ / ま", translation: "espace, intervalle", activeInQuiz: true, weight: 1 },
-                    { kanji: "聞", kana: "きく", translation: "écouter, entendre", activeInQuiz: true, weight: 1 },
-                    { kanji: "円", kana: "えん", translation: "yen, cercle", activeInQuiz: true, weight: 1 },
-                    { kanji: "来", kana: "くる", translation: "venir", activeInQuiz: true, weight: 1 },
-                    { kanji: "気", kana: "き", translation: "esprit, énergie", activeInQuiz: true, weight: 1 },
-                    { kanji: "長", kana: "ながい", translation: "long, chef", activeInQuiz: true, weight: 1 }
+                    { kanji: "一", kana: "いち", translation: "un", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "二", kana: "に", translation: "deux", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "三", kana: "さん", translation: "trois", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "四", kana: "し / よん", translation: "quatre", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "五", kana: "ご", translation: "cinq", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "六", kana: "ろく", translation: "six", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "七", kana: "しち / なな", translation: "sept", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "八", kana: "はち", translation: "huit", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "九", kana: "きゅう / く", translation: "neuf", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "十", kana: "じゅう", translation: "dix", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "日", kana: "ひ / にち", translation: "jour, soleil", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "月", kana: "つき / げつ", translation: "lune, mois", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "白", kana: "しろ", translation: "blanc", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "百", kana: "ひゃく", translation: "cent", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "中", kana: "なか", translation: "milieu, centre, dans", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "千", kana: "せん", translation: "mille", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "上", kana: "うえ", translation: "haut, dessus", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "下", kana: "した", translation: "bas, dessous", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "見", kana: "みる", translation: "voir", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "万", kana: "まん", translation: "dix mille", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "左", kana: "ひだり", translation: "gauche", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "右", kana: "みぎ", translation: "droite", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "子", kana: "こ", translation: "enfant", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "女", kana: "おんな", translation: "femme", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "母", kana: "はは", translation: "mère", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "小", kana: "ちいさい", translation: "petit", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "大", kana: "おおきい", translation: "grand", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "外", kana: "そと", translation: "dehors, extérieur", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "名", kana: "な", translation: "nom", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "川", kana: "かわ", translation: "rivière, fleuve", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "水", kana: "みず", translation: "eau", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "土", kana: "つち", translation: "sol, terre", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "時", kana: "とき", translation: "temps, heure", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "火", kana: "ひ", translation: "feu", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "木", kana: "き", translation: "arbre, bois", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "本", kana: "ほん", translation: "livre, origine", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "先", kana: "さき", translation: "précédent, futur", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "金", kana: "かね", translation: "or, argent, métal", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "車", kana: "くるま", translation: "voiture", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "前", kana: "まえ", translation: "devant, avant", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "高", kana: "たかい", translation: "haut, cher", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "学", kana: "がく", translation: "étude, apprentissage", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "書", kana: "かく", translation: "écrire", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "話", kana: "はなし", translation: "parler, discussion", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "語", kana: "ご", translation: "langue, mot", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "読", kana: "よむ", translation: "lire", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "雨", kana: "あめ", translation: "pluie", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "天", kana: "てん", translation: "cieux, paradis", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "北", kana: "きた", translation: "nord", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "毎", kana: "まい", translation: "chaque", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "東", kana: "ひがし", translation: "est", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "電", kana: "でん", translation: "électricité", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "午", kana: "ご", translation: "midi", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "国", kana: "くに", translation: "pays", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "友", kana: "とも", translation: "ami", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "出", kana: "でる", translation: "sortir", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "山", kana: "やま", translation: "montagne", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "入", kana: "いる / はいる", translation: "entrer", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "分", kana: "ぶん / ふん", translation: "partie, minute", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "男", kana: "おとこ", translation: "homme", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "行", kana: "いく", translation: "aller", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "人", kana: "ひと", translation: "personne", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "休", kana: "やすむ", translation: "se reposer", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "何", kana: "なに / なん", translation: "quoi, quel", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "年", kana: "とし", translation: "an, année", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "半", kana: "はん", translation: "moitié", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "父", kana: "ちち", translation: "père", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "校", kana: "こう", translation: "école", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "後", kana: "あと / うしろ", translation: "après, derrière", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "食", kana: "たべる", translation: "manger", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "生", kana: "せい / 生きる", translation: "vie, naître", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "今", kana: "いま", translation: "maintenant", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "西", kana: "にし", translation: "ouest", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "南", kana: "みなみ", translation: "sud", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "間", kana: "あいだ / ま", translation: "espace, intervalle", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "聞", kana: "きく", translation: "écouter, entendre", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "円", kana: "えん", translation: "yen, cercle", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "来", kana: "くる", translation: "venir", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "気", kana: "き", translation: "esprit, énergie", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "長", kana: "ながい", translation: "long, chef", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 }
                 ]
             },
             "N4": {
                 levelActive: false,
+                desc: "Kanjis intermédiaires bas",
                 words: [
-                    { kanji: "会", kana: "あう", translation: "rencontrer", activeInQuiz: true, weight: 1 },
-                    { kanji: "同", kana: "おなじ", translation: "même", activeInQuiz: true, weight: 1 },
-                    { kanji: "事", kana: "こと", translation: "chose, affaire", activeInQuiz: true, weight: 1 },
-                    { kanji: "自", kana: "みずから", translation: "soi-même", activeInQuiz: true, weight: 1 },
-                    { kanji: "社", kana: "しゃ", translation: "entreprise, sanctuaire", activeInQuiz: true, weight: 1 },
-                    { kanji: "発", kana: "はつ", translation: "départ, émission", activeInQuiz: true, weight: 1 },
-                    { kanji: "者", kana: "もの", translation: "personne", activeInQuiz: true, weight: 1 },
-                    { kanji: "地", kana: "ち", translation: "sol, terre", activeInQuiz: true, weight: 1 },
-                    { kanji: "業", kana: "ぎょう", translation: "travail, industrie", activeInQuiz: true, weight: 1 },
-                    { kanji: "方", kana: "かた", translation: "façon, direction", activeInQuiz: true, weight: 1 }
+                    { kanji: "会", kana: "あう", translation: "rencontrer", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "同", kana: "おなじ", translation: "même", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "事", kana: "こと", translation: "chose, affaire", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "自", kana: "みずから", translation: "soi-même", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "社", kana: "しゃ", translation: "entreprise, sanctuaire", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "発", kana: "はつ", translation: "départ, émission", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "者", kana: "もの", translation: "personne", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "地", kana: "ち", translation: "sol, terre", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "業", kana: "ぎょう", translation: "travail, industrie", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 },
+                    { kanji: "方", kana: "かた", translation: "façon, direction", activeInQuiz: true, weight: 1, attempts: 0, successes: 0 }
                 ]
             },
             "N3": {
                 levelActive: false,
+                desc: "Kanjis intermédiaires",
                 words: [
-                    "世", "界", "部", "度", "通", "信", "強", "調", "問", "題"
-                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+                    "世", "界", "部", "度", "通", "信", "強", "調", "問", "題", "政", "治", "府", "県", "市", "町", "村", "京", "都", "道"
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1, attempts: 0, successes: 0 }))
             },
             "N2": {
                 levelActive: false,
+                desc: "Kanjis avancés",
                 words: [
-                    "定", "実", "例", "意", "京", "都", "府", "県", "市", "町"
-                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+                    "定", "実", "例", "意", "素", "晴", "特", "別", "主", "要"
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1, attempts: 0, successes: 0 }))
             },
             "N1": {
                 levelActive: false,
+                desc: "Kanjis experts",
                 words: [
                     "環境", "構造", "影響", "複雑", "議論"
-                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1, attempts: 0, successes: 0 }))
             }
         };
 
@@ -612,7 +613,7 @@
         let autoNextTimer = null;
 
         function saveData() {
-            localStorage.setItem('kanji_db_full_v5', JSON.stringify(kanjiDatabase));
+            localStorage.setItem('kanji_db_full_v6', JSON.stringify(kanjiDatabase));
         }
 
         function switchView(viewName, btnElement) {
@@ -634,7 +635,6 @@
             renderList();
         }
 
-        // Récupère TOUS les kanjis des niveaux activés (pour la vue Liste)
         function getKanjisFromActiveLevels() {
             let list = [];
             for (let lvl in kanjiDatabase) {
@@ -645,7 +645,6 @@
             return list;
         }
 
-        // Récupère uniquement les kanjis sélectionnés pour le quiz parmi les niveaux actifs
         function getQuizEligibleKanjis() {
             let list = [];
             for (let lvl in kanjiDatabase) {
@@ -668,8 +667,15 @@
             }
             listDiv.innerHTML = '';
             activeWords.forEach((w) => {
-                if (!w.weight) w.weight = 1;
                 const isQuizOn = w.activeInQuiz !== false;
+                
+                // Calcul du pourcentage de réussite ou affichage "Nouveau"
+                let successText = "Nouveau";
+                if (w.attempts && w.attempts > 0) {
+                    const percent = Math.round((w.successes / w.attempts) * 100);
+                    successText = `Réussite : ${percent}%`;
+                }
+
                 listDiv.innerHTML += `
                     <div class="card">
                         <div class="card-content">
@@ -677,7 +683,7 @@
                             <div class="translation">${w.translation}</div>
                         </div>
                         <div class="card-right">
-                            <div class="card-badge">Poids : ${w.weight}</div>
+                            <div class="card-badge">${successText}</div>
                             <div class="card-status ${isQuizOn ? 'active' : 'inactive'}">
                                 ${isQuizOn ? '✔ Quiz actif' : '✖ Quiz inactif'}
                             </div>
@@ -692,6 +698,11 @@
                 const toggle = document.getElementById('toggle-' + lvl.toLowerCase());
                 if (toggle) {
                     toggle.checked = kanjiDatabase[lvl].levelActive;
+                }
+                const descP = document.getElementById('desc-' + lvl.toLowerCase());
+                if (descP) {
+                    const count = kanjiDatabase[lvl].words.length;
+                    descP.innerText = `${count} ${kanjiDatabase[lvl].desc}`;
                 }
             }
         }
@@ -834,7 +845,10 @@
             const feedback = document.getElementById('quizFeedback');
 
             if (!w.weight) w.weight = 1;
+            if (w.attempts === undefined) w.attempts = 0;
+            if (w.successes === undefined) w.successes = 0;
 
+            w.attempts++;
             let isCorrect = false;
 
             if (currentQuizLang === 'FR') {
@@ -853,6 +867,7 @@
             if (isCorrect) {
                 feedback.style.color = "var(--success)";
                 feedback.innerText = "✔ Correct !";
+                w.successes++;
                 w.weight = Math.max(1, w.weight - 1);
             } else {
                 feedback.style.color = "var(--danger)";
