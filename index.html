@@ -328,26 +328,13 @@
             box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
             z-index: 2;
         }
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-actions button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
 
     <header>
         <div style="width: 30px;"></div>
-        <div class="header-title" id="headerTitle">📚 Kanjis Actifs</div>
+        <div class="header-title" id="headerTitle">📚 Kanjis des Niveaux Actifs</div>
         <button class="grid-toggle-icon" onclick="openGridModal()" title="Sélectionner les kanjis pour le quiz">🎛️</button>
     </header>
 
@@ -378,7 +365,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N4</h3>
-                    <p>~170 kanjis (intermédiaire bas)</p>
+                    <p>Kanjis intermédiaires bas</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n4" onchange="toggleLevel('N4', this.checked)">
@@ -389,7 +376,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N3</h3>
-                    <p>~370 kanjis (intermédiaire)</p>
+                    <p>Kanjis niveau intermédiaire</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n3" onchange="toggleLevel('N3', this.checked)">
@@ -400,7 +387,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N2</h3>
-                    <p>~400 kanjis (avancé)</p>
+                    <p>Kanjis niveau avancé</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n2" onchange="toggleLevel('N2', this.checked)">
@@ -411,7 +398,7 @@
             <div class="level-block">
                 <div class="level-info">
                     <h3>JLPT N1</h3>
-                    <p>~1100 kanjis (maîtrise / expert)</p>
+                    <p>Kanjis niveau expert</p>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="toggle-n1" onchange="toggleLevel('N1', this.checked)">
@@ -441,17 +428,27 @@
     <div id="gridModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Sélection pour le Quiz</h3>
+                <h3>Sélection pour le Quiz (Par Niveau)</h3>
                 <button class="close-modal-btn" onclick="closeGridModal()">✕</button>
             </div>
-            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 0;">Coche/décoche les kanjis qui doivent apparaître dans le quiz.</p>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 0;">Choisis le niveau à configurer, puis clique sur les kanjis pour les inclure ou non dans le quiz.</p>
             
+            <div style="margin-bottom: 12px;">
+                <select id="modalLevelSelect" onchange="renderGridModal()" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 15px; background: white;">
+                    <option value="N5">JLPT N5</option>
+                    <option value="N4">JLPT N4</option>
+                    <option value="N3">JLPT N3</option>
+                    <option value="N2">JLPT N2</option>
+                    <option value="N1">JLPT N1</option>
+                </select>
+            </div>
+
             <div class="kanji-grid" id="kanjiGridContainer"></div>
 
-            <div class="modal-actions">
-                <button style="background: var(--bg); color: var(--text);" onclick="setAllModalSelection(true)">Tout cocher</button>
-                <button style="background: #ffe5e5; color: var(--danger);" onclick="setAllModalSelection(false)">Tout décocher</button>
-                <button style="background: var(--primary); color: white;" onclick="closeGridModal()">Valider</button>
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+                <button style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: var(--bg); font-weight: 600; cursor: pointer;" onclick="setAllModalSelection(true)">Tout cocher</button>
+                <button style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: #ffe5e5; color: var(--danger); font-weight: 600; cursor: pointer;" onclick="setAllModalSelection(false)">Tout décocher</button>
+                <button style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer;" onclick="closeGridModal()">Valider</button>
             </div>
         </div>
     </div>
@@ -465,8 +462,8 @@
     </nav>
 
     <script>
-        // Base de données avec état du niveau actif (levelActive) et état individuel pour le quiz (activeInQuiz)
-        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_split_v3')) || {
+        // Base de données structurée pour tous les niveaux
+        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_full_v4')) || {
             "N5": {
                 levelActive: true,
                 words: [
@@ -552,7 +549,16 @@
                     { kanji: "長", kana: "ながい", translation: "long, chef", activeInQuiz: true, weight: 1 }
                 ]
             },
-            "N4": { levelActive: false, words: [] },
+            "N4": {
+                levelActive: false,
+                words: [
+                    { kanji: "会", kana: "あう", translation: "rencontrer", activeInQuiz: true, weight: 1 },
+                    { kanji: "同", kana: "お同じ", translation: "même", activeInQuiz: true, weight: 1 },
+                    { kanji: "事", kana: "こと", translation: "chose, affaire", activeInQuiz: true, weight: 1 },
+                    { kanji: "自", kana: "みずから", translation: "soi-même", activeInQuiz: true, weight: 1 },
+                    { kanji: "社", kana: "しゃ", translation: "entreprise, sanctuaire", activeInQuiz: true, weight: 1 }
+                ]
+            },
             "N3": { levelActive: false, words: [] },
             "N2": { levelActive: false, words: [] },
             "N1": { levelActive: false, words: [] }
@@ -564,7 +570,7 @@
         let autoNextTimer = null;
 
         function saveData() {
-            localStorage.setItem('kanji_db_split_v3', JSON.stringify(kanjiDatabase));
+            localStorage.setItem('kanji_db_full_v4', JSON.stringify(kanjiDatabase));
         }
 
         function switchView(viewName, btnElement) {
@@ -586,7 +592,7 @@
             renderList();
         }
 
-        // Récupère tous les kanjis dont le niveau est actif (pour l'affichage dans "Liste")
+        // Récupère TOUS les kanjis des niveaux activés (pour la vue Liste)
         function getKanjisFromActiveLevels() {
             let list = [];
             for (let lvl in kanjiDatabase) {
@@ -597,7 +603,7 @@
             return list;
         }
 
-        // Récupère uniquement les kanjis sélectionnés pour le quiz (pour l'onglet "Quiz")
+        // Récupère uniquement les kanjis sélectionnés pour le quiz parmi les niveaux actifs
         function getQuizEligibleKanjis() {
             let list = [];
             for (let lvl in kanjiDatabase) {
@@ -646,6 +652,7 @@
             if (kanjiDatabase[levelName]) {
                 kanjiDatabase[levelName].levelActive = status;
                 saveData();
+                renderList();
             }
         }
 
@@ -658,14 +665,20 @@
         function closeGridModal() {
             document.getElementById('gridModal').classList.remove('active');
             saveData();
+            renderList();
         }
 
         function renderGridModal() {
             const gridContainer = document.getElementById('kanjiGridContainer');
+            const selectedLvl = document.getElementById('modalLevelSelect').value;
             gridContainer.innerHTML = '';
             
-            // On prend les mots du niveau N5 (ou de tous les niveaux actifs si tu préfères)
-            const targetWords = kanjiDatabase["N5"].words;
+            const targetWords = kanjiDatabase[selectedLvl] ? kanjiDatabase[selectedLvl].words : [];
+
+            if (targetWords.length === 0) {
+                gridContainer.innerHTML = '<p style="grid-column: span 8; text-align:center; color: var(--text-secondary); font-size: 14px;">Aucun kanji enregistré pour ce niveau.</p>';
+                return;
+            }
             
             targetWords.forEach((w) => {
                 const cell = document.createElement('div');
@@ -687,8 +700,11 @@
         }
 
         function setAllModalSelection(status) {
-            kanjiDatabase["N5"].words.forEach(w => w.activeInQuiz = status);
-            renderGridModal();
+            const selectedLvl = document.getElementById('modalLevelSelect').value;
+            if (kanjiDatabase[selectedLvl]) {
+                kanjiDatabase[selectedLvl].words.forEach(w => w.activeInQuiz = status);
+                renderGridModal();
+            }
         }
 
         // --- ALGORITHME DE QUIZ PONDÉRÉ ---
