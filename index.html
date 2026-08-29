@@ -96,6 +96,13 @@
             margin-top: 4px;
         }
 
+        .card-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
         .card-badge {
             font-size: 12px;
             padding: 4px 8px;
@@ -103,6 +110,21 @@
             background: #eef5ff;
             color: var(--primary);
             font-weight: 600;
+        }
+
+        .card-status {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .card-status.active {
+            background: #e1fdf0;
+            color: var(--success);
+        }
+        .card-status.inactive {
+            background: #fff2f2;
+            color: var(--danger);
         }
 
         /* Style des blocs de gestion des niveaux */
@@ -462,8 +484,8 @@
     </nav>
 
     <script>
-        // Base de données structurée pour tous les niveaux
-        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_full_v4')) || {
+        // Base de données complète pour tous les niveaux (N5 à N1)
+        let kanjiDatabase = JSON.parse(localStorage.getItem('kanji_db_full_v5')) || {
             "N5": {
                 levelActive: true,
                 words: [
@@ -553,15 +575,35 @@
                 levelActive: false,
                 words: [
                     { kanji: "会", kana: "あう", translation: "rencontrer", activeInQuiz: true, weight: 1 },
-                    { kanji: "同", kana: "お同じ", translation: "même", activeInQuiz: true, weight: 1 },
+                    { kanji: "同", kana: "おなじ", translation: "même", activeInQuiz: true, weight: 1 },
                     { kanji: "事", kana: "こと", translation: "chose, affaire", activeInQuiz: true, weight: 1 },
                     { kanji: "自", kana: "みずから", translation: "soi-même", activeInQuiz: true, weight: 1 },
-                    { kanji: "社", kana: "しゃ", translation: "entreprise, sanctuaire", activeInQuiz: true, weight: 1 }
+                    { kanji: "社", kana: "しゃ", translation: "entreprise, sanctuaire", activeInQuiz: true, weight: 1 },
+                    { kanji: "発", kana: "はつ", translation: "départ, émission", activeInQuiz: true, weight: 1 },
+                    { kanji: "者", kana: "もの", translation: "personne", activeInQuiz: true, weight: 1 },
+                    { kanji: "地", kana: "ち", translation: "sol, terre", activeInQuiz: true, weight: 1 },
+                    { kanji: "業", kana: "ぎょう", translation: "travail, industrie", activeInQuiz: true, weight: 1 },
+                    { kanji: "方", kana: "かた", translation: "façon, direction", activeInQuiz: true, weight: 1 }
                 ]
             },
-            "N3": { levelActive: false, words: [] },
-            "N2": { levelActive: false, words: [] },
-            "N1": { levelActive: false, words: [] }
+            "N3": {
+                levelActive: false,
+                words: [
+                    "世", "界", "部", "度", "通", "信", "強", "調", "問", "題"
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+            },
+            "N2": {
+                levelActive: false,
+                words: [
+                    "定", "実", "例", "意", "京", "都", "府", "県", "市", "町"
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+            },
+            "N1": {
+                levelActive: false,
+                words: [
+                    "環境", "構造", "影響", "複雑", "議論"
+                ].map((k, i) => ({ kanji: k, kana: "kana" + i, translation: "Traduction " + k, activeInQuiz: true, weight: 1 }))
+            }
         };
 
         let currentQuizKanji = null;
@@ -570,7 +612,7 @@
         let autoNextTimer = null;
 
         function saveData() {
-            localStorage.setItem('kanji_db_full_v4', JSON.stringify(kanjiDatabase));
+            localStorage.setItem('kanji_db_full_v5', JSON.stringify(kanjiDatabase));
         }
 
         function switchView(viewName, btnElement) {
@@ -627,13 +669,19 @@
             listDiv.innerHTML = '';
             activeWords.forEach((w) => {
                 if (!w.weight) w.weight = 1;
+                const isQuizOn = w.activeInQuiz !== false;
                 listDiv.innerHTML += `
                     <div class="card">
                         <div class="card-content">
                             <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span></div>
                             <div class="translation">${w.translation}</div>
                         </div>
-                        <div class="card-badge" title="Poids de révision">Difficulté : ${w.weight}</div>
+                        <div class="card-right">
+                            <div class="card-badge">Poids : ${w.weight}</div>
+                            <div class="card-status ${isQuizOn ? 'active' : 'inactive'}">
+                                ${isQuizOn ? '✔ Quiz actif' : '✖ Quiz inactif'}
+                            </div>
+                        </div>
                     </div>
                 `;
             });
