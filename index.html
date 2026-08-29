@@ -36,6 +36,23 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+        }
+
+        /* Bouton icône de sélection de grille */
+        .grid-toggle-icon {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
         }
 
         .container {
@@ -52,25 +69,6 @@
             display: block;
         }
 
-        /* En-tête de la liste avec filtres */
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .filter-toggle-btn {
-            background: var(--card-bg);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
         .card {
             background: var(--card-bg);
             padding: 16px;
@@ -80,20 +78,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .card-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .card-checkbox {
-            width: 22px;
-            height: 22px;
-            accent-color: var(--primary);
-            cursor: pointer;
         }
 
         .card-content .kanji {
@@ -229,24 +213,114 @@
             font-weight: bold;
             margin-top: 15px;
         }
+
+        /* Modal de la grille interactive type image */
+        #gridModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        #gridModal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #f9f9f9;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .kanji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .grid-cell {
+            aspect-ratio: 1;
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+        /* Style sélectionné : entouré de bleu et un peu plus gros */
+        .grid-cell.selected {
+            border-color: var(--primary);
+            background: #eef5ff;
+            color: var(--primary);
+            transform: scale(1.12);
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+            z-index: 2;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-    <header id="headerTitle">📚 Kanjis JLPT N5 (80)</header>
+    <header>
+        <div style="width: 30px;"></div>
+        <div class="header-title" id="headerTitle">📚 Kanjis JLPT N5 (80)</div>
+        <!-- Petite icône dans un coin pour ouvrir le menu grille -->
+        <button class="grid-toggle-icon" onclick="openGridModal()" title="Sélectionner les kanjis">🎛️</button>
+    </header>
 
     <div class="container">
         
+        <!-- VUE 1 : LISTE / REVISION -->
         <div id="view-list" class="view active">
-            <div class="list-header">
-                <h2>Mes kanjis</h2>
-                <button class="filter-toggle-btn" onclick="toggleSelectAll(true)">Tout cocher</button>
-                <button class="filter-toggle-btn" onclick="toggleSelectAll(false)">Tout décocher</button>
-            </div>
+            <h2>Mes kanjis enregistrés</h2>
             <div id="wordList"></div>
             <button class="action-btn sync-btn" onclick="syncToESP32()">🔄 Synchroniser avec l'ESP32</button>
         </div>
 
+        <!-- VUE 2 : AJOUTER -->
         <div id="view-add" class="view">
             <h2>Ajouter un kanji</h2>
             <div class="form-group">
@@ -264,6 +338,7 @@
             <button class="action-btn" onclick="addWord()">Enregistrer</button>
         </div>
 
+        <!-- VUE 3 : QUIZ INTERACTIF -->
         <div id="view-quiz" class="view">
             <h2>Quiz de révision</h2>
             <div class="quiz-box">
@@ -280,6 +355,25 @@
 
     </div>
 
+    <!-- MODAL DE LA GRILLE TYPE IMAGE -->
+    <div id="gridModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sélection des Kanjis (Quiz)</h3>
+                <button class="close-modal-btn" onclick="closeGridModal()">✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 0;">Clique sur un kanji pour l'activer ou le désactiver dans le quiz.</p>
+            
+            <div class="kanji-grid" id="kanjiGridContainer"></div>
+
+            <div class="modal-actions">
+                <button style="background: var(--bg); color: var(--text);" onclick="setAllModalSelection(true)">Tout cocher</button>
+                <button style="background: #ffe5e5; color: var(--danger);" onclick="setAllModalSelection(false)">Tout décocher</button>
+                <button style="background: var(--primary); color: white;" onclick="closeGridModal()">Valider</button>
+            </div>
+        </div>
+    </div>
+
     <nav>
         <button onclick="switchView('list', this)" class="active">
             <span class="icon">📖</span>Liste
@@ -289,8 +383,8 @@
     </nav>
 
     <script>
-        // Les exacts 80 kanjis de la grille JLPT N5 (Clé: vocab_kanji_n5_80_v2)
-        let words = JSON.parse(localStorage.getItem('vocab_kanji_n5_80_v2')) || [
+        // Les exacts 80 kanjis de la grille JLPT N5 (Clé: vocab_kanji_n5_80_v3)
+        let words = JSON.parse(localStorage.getItem('vocab_kanji_n5_80_v3')) || [
             { kanji: "一", kana: "いち", translation: "un", weight_FR: 3, weight_JP: 3, activeInQuiz: true },
             { kanji: "二", kana: "に", translation: "deux", weight_FR: 3, weight_JP: 3, activeInQuiz: true },
             { kanji: "三", kana: "さん", translation: "trois", weight_FR: 3, weight_JP: 3, activeInQuiz: true },
@@ -380,12 +474,11 @@
         let autoNextTimer = null;
 
         function saveAndRender() {
-            localStorage.setItem('vocab_kanji_n5_80_v2', JSON.stringify(words));
+            localStorage.setItem('vocab_kanji_n5_80_v3', JSON.stringify(words));
             renderList();
         }
 
         function switchView(viewName, btnElement) {
-            // Si aucun bouton n'est passé en paramètre (ex: clic sur l'icône de la barre de navigation), on le retrouve
             if (!btnElement) {
                 const navButtons = document.querySelectorAll('nav button');
                 if (viewName === 'list') btnElement = navButtons[0];
@@ -402,8 +495,7 @@
             const titles = { list: "📚 Kanjis JLPT N5 (80)", add: "✍️ Nouveau Kanji", quiz: "⚡ Quiz Interactif" };
             document.getElementById('headerTitle').innerText = titles[viewName];
             
-            // Si on va sur le quiz et qu'aucune question n'est en cours, on initialise. 
-            // S'il y a déjà une question en cours, on la garde (pas de triche !)
+            // Empêche la triche : si on change de page vers le quiz et qu'aucune question n'est active, on l'initialise. Si elle est en cours, on la garde.
             if(viewName === 'quiz' && currentQuizIndex === -1) {
                 initQuiz();
             }
@@ -417,16 +509,13 @@
             }
             listDiv.innerHTML = '';
             words.forEach((w, index) => {
-                const isChecked = w.activeInQuiz !== false ? 'checked' : '';
+                const statusBadge = w.activeInQuiz !== false ? '<span style="color:var(--success)">● Actif</span>' : '<span style="color:var(--text-secondary)">○ Inactif</span>';
                 listDiv.innerHTML += `
                     <div class="card">
-                        <div class="card-left">
-                            <input type="checkbox" class="card-checkbox" ${isChecked} onchange="toggleQuizActive(${index}, this.checked)">
-                            <div class="card-content">
-                                <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span></div>
-                                <div class="translation">${w.translation}</div>
-                                <div class="card-stats">Poids - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
-                            </div>
+                        <div class="card-content">
+                            <div><span class="kanji">${w.kanji}</span><span class="kana">[${w.kana}]</span> <span style="font-size:12px; margin-left:8px;">${statusBadge}</span></div>
+                            <div class="translation">${w.translation}</div>
+                            <div class="card-stats">Poids - FR: ${w.weight_FR || 3} | JP: ${w.weight_JP || 3}</div>
                         </div>
                         <button class="delete-btn" onclick="deleteWord(${index})">Suppr</button>
                     </div>
@@ -434,14 +523,43 @@
             });
         }
 
-        function toggleQuizActive(index, status) {
-            words[index].activeInQuiz = status;
-            localStorage.setItem('vocab_kanji_n5_80_v2', JSON.stringify(words));
+        // --- GESTION DE LA MODALE GRILLE TYPE IMAGE ---
+        function openGridModal() {
+            renderGridModal();
+            document.getElementById('gridModal').classList.add('active');
         }
 
-        function toggleSelectAll(status) {
-            words.forEach(w => w.activeInQuiz = status);
+        function closeGridModal() {
+            document.getElementById('gridModal').classList.remove('active');
             saveAndRender();
+        }
+
+        function renderGridModal() {
+            const gridContainer = document.getElementById('kanjiGridContainer');
+            gridContainer.innerHTML = '';
+            
+            words.forEach((w, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                if (w.activeInQuiz !== false) {
+                    cell.classList.add('selected');
+                }
+                cell.innerText = w.kanji;
+                cell.onclick = function() {
+                    w.activeInQuiz = !(w.activeInQuiz !== false);
+                    if (w.activeInQuiz) {
+                        cell.classList.add('selected');
+                    } else {
+                        cell.classList.remove('selected');
+                    }
+                };
+                gridContainer.appendChild(cell);
+            });
+        }
+
+        function setAllModalSelection(status) {
+            words.forEach(w => w.activeInQuiz = status);
+            renderGridModal();
         }
 
         function addWord() {
@@ -471,7 +589,6 @@
         }
 
         function initQuiz() {
-            // Filtrer uniquement les kanjis cochés pour le quiz
             const activeWords = words.filter(w => w.activeInQuiz !== false);
 
             if (activeWords.length === 0) {
@@ -479,7 +596,7 @@
                 document.getElementById('quizPrompt').innerText = "Aucun kanji coché !";
                 document.getElementById('userAnswerInput').disabled = true;
                 document.getElementById('quizActionBtn').disabled = true;
-                document.getElementById('quizFeedback').innerText = "Coche au moins un kanji dans l'onglet 'Liste' pour lancer le quiz.";
+                document.getElementById('quizFeedback').innerText = "Ouvre la grille (icône ️ en haut à droite) pour cocher au moins un kanji.";
                 return;
             }
 
@@ -508,14 +625,12 @@
                     }
                 }
                 
-                // On s'assure de ne pas retomber immédiatement sur le même si on a plusieurs mots
                 if (activeWords.length === 1 || nextActiveWord !== words[lastQuizIndex]) {
                     break;
                 }
                 attempts++;
             }
             
-            // Retrouver l'index exact de ce mot dans la liste globale 'words'
             currentQuizIndex = words.indexOf(nextActiveWord);
             lastQuizIndex = currentQuizIndex;
 
@@ -622,7 +737,7 @@
         });
 
         async function syncToESP32() {
-            const savedIP = localStorage.getItem('esp_ip') || "192.168.1.200";
+            const savedIP = localStorage.getItem('esp_ip')  || "192.168.1.200";
             const espIP = prompt("Adresse IP locale de l'ESP32 :", savedIP);
             if (!espIP) return;
 
