@@ -325,14 +325,14 @@
         /* --- STYLES FLASHCARDS --- */
         .flashcard-container {
             background: var(--card-bg);
-            height: 350px;
+            height: 320px;
             border-radius: 24px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            margin: 20px 0;
+            margin: 15px 0;
             cursor: pointer;
             user-select: none;
             position: relative;
@@ -345,19 +345,20 @@
             transform: scale(0.98);
         }
         .flashcard-main {
-            font-size: 80px;
+            font-size: 75px;
             font-weight: bold;
             color: var(--primary);
             margin-bottom: 10px;
         }
         .flashcard-sub {
-            font-size: 22px;
+            font-size: 20px;
             color: var(--text-secondary);
         }
         .flashcard-translation {
-            font-size: 30px;
+            font-size: 26px;
             color: var(--text);
             font-weight: bold;
+            margin-bottom: 8px;
         }
         .flashcard-controls {
             display: flex;
@@ -366,7 +367,7 @@
         }
         .flashcard-controls button {
             flex: 1;
-            padding: 16px;
+            padding: 14px;
             border-radius: 14px;
             border: none;
             font-size: 16px;
@@ -382,7 +383,7 @@
             text-align: center;
             font-size: 13px;
             color: var(--text-secondary);
-            margin-top: 15px;
+            margin-top: 12px;
         }
 
     </style>
@@ -430,6 +431,17 @@
         <!-- VUE 4 : FLASHCARDS -->
         <div id="view-flashcard" class="view">
             <h2>Flashcards</h2>
+            
+            <!-- Sélecteur du mode d'affichage -->
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Sens de départ :</label>
+                <select id="flashcardModeSelect" onchange="changeFlashcardMode(this.value)" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:14px; background:var(--card-bg); color:var(--text); box-sizing:border-box;">
+                    <option value="kanji">🈁 Kanji d'abord (Vers Traduction)</option>
+                    <option value="translation">🇫🇷 Traduction d'abord (Vers Kanji)</option>
+                    <option value="random">🔀 Aléatoire</option>
+                </select>
+            </div>
+
             <div class="flashcard-container" id="flashcardContainer" onclick="flipFlashcard()">
                 <div id="flashcardContent">
                     <!-- Contenu injecté en JS -->
@@ -629,7 +641,6 @@
             ]
         };
 
-        // Utilisation de nouvelles clés de version (_v4 et _v2) pour éviter les conflits avec le cache du navigateur
         let words = JSON.parse(localStorage.getItem('vocab_kanji_n5_80_v4')) || KANJI_LEVELS['N5'].map(k => ({...k, weight_FR: 3, weight_JP: 3, activeInQuiz: true, level: 'N5', correctCount: 0, totalCount: 0}));
 
         const KANJI_TO_LEVEL = {};
@@ -777,7 +788,6 @@
                     : `${Math.round(sumCorrect / sumTotal * 100)}% de réussite`;
 
                 const textWrap = document.createElement('div');
-                // Affichage dynamique précis du nombre de kanjis du niveau basé sur KANJI_LEVELS
                 textWrap.innerHTML = `
                     <div class="level-name">JLPT ${level}</div>
                     <div class="level-desc">${levelKanjis.length} kanjis · ${statText}</div>
@@ -1010,6 +1020,7 @@
         let flashcardWords = [];
         let currentFcIndex = 0;
         let isFcFlipped = false;
+        let flashcardMode = 'kanji'; // 'kanji', 'translation', 'random'
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1029,6 +1040,12 @@
             renderFlashcard();
         }
 
+        function changeFlashcardMode(mode) {
+            flashcardMode = mode;
+            isFcFlipped = false;
+            renderFlashcard();
+        }
+
         function renderFlashcard() {
             const content = document.getElementById('flashcardContent');
             
@@ -1038,9 +1055,27 @@
             }
             
             const w = flashcardWords[currentFcIndex];
-            if (!isFcFlipped) {
+            
+            // Déterminer si le recto doit être la traduction ou le kanji en fonction du mode
+            let startWithTranslation = false;
+            if (flashcardMode === 'translation') {
+                startWithTranslation = true;
+            } else if (flashcardMode === 'random') {
+                // Aléatoire basé sur l'index ou persistant par carte, ici simple alternance ou aléatoire pur
+                if (w._randomSide === undefined) {
+                    w._randomSide = Math.random() < 0.5;
+                }
+                startWithTranslation = w._randomSide;
+            }
+
+            // Si isFcFlipped est faux, on montre le recto. S'il est vrai, on montre le verso.
+            const showTranslationSide = startWithTranslation ? !isFcFlipped : isFcFlipped;
+
+            if (!showTranslationSide) {
+                // Affichage du côté Kanji
                 content.innerHTML = `<div class="flashcard-main">${w.kanji}</div>`;
             } else {
+                // Affichage du côté Traduction + Kana
                 content.innerHTML = `
                     <div class="flashcard-translation">${w.translation}</div>
                     <div class="flashcard-sub">[${w.kana}]</div>
@@ -1060,6 +1095,8 @@
             currentFcIndex++;
             if (currentFcIndex >= flashcardWords.length) {
                 shuffleArray(flashcardWords);
+                // Réinitialiser le côté aléatoire pour un nouveau tour si le mode est aléatoire
+                flashcardWords.forEach(w => delete w._randomSide);
                 currentFcIndex = 0;
             }
             
